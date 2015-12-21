@@ -154,7 +154,7 @@ With Profiles
 
 .. code-block:: sh
 
-    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudema --profile development
+    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman --profile development
     INFO - Using profile: development
-    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudema] (renewing for 1800 seconds):666666
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):666666
     INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:09:04+00:00
