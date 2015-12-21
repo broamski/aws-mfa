@@ -1,150 +1,160 @@
+aws-mfa: Easily manage your AWS Security Credentials when using Multi-Factor Authentication (MFA)
+=================================================================================================
 
-# aws-mfa: Easily manage your AWS Security Credentials when using Multi-Factor Authentication (MFA)
-
-
-**aws-mfa** makes it easy to manage your AWS SDK Security Credentials when Multi-Factor Authentication (MFA) is enforced on your AWS account. It automates the process of obtaining temporary credentials from the [AWS Security Token Service](http://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html) and updating your [AWS Credentials](https://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs) file. Traditional methods of managing MFA-based credentials requires users to write their own bespoke scripts/wrappers to fetch temporary credentials from STS and often times manually update their AWS credentials file.
+**aws-mfa** makes it easy to manage your AWS SDK Security Credentials when Multi-Factor Authentication (MFA) is enforced on your AWS account. It automates the process of obtaining temporary credentials from the `AWS Security Token Service 
+<http://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html>`_ and updating your `AWS Credentials <https://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs>`_ file. Traditional methods of managing MFA-based credentials requires users to write their own bespoke scripts/wrappers to fetch temporary credentials from STS and often times manually update their AWS credentials file.
 
 The concept behind **aws-mfa** is that there are 2 types of credentials:
 
-* `long-term` - Your typcial AWS access keys, consisting of an `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+* ``long-term`` - Your typcial AWS access keys, consisting of an ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY``
 
-* `short-term` - A temporary set of credentials that are generated from a combination for your long-term credentials and your MFA token using the [AWS Security Token Service](http://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html).
+* ``short-term`` - A temporary set of credentials that are generated from a combination for your long-term credentials and your MFA token using the `AWS Security Token Service <http://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html>`_.
 
 
 **aws-mfa** uses your `long-term` credentials in combination with your MFA device serial and token to populate the short term credentials section. Your short term credentials can be thought of as the credentials that are actively used.
 
-#### Installation:
+Installation:
+-------------
+Option 1
+~~~~~~~~
+.. code-block:: sh
 
-###### Option 1
+    $ pip install aws-mfa
 
-`pip install aws-mfa`
+Option 2
+~~~~~~~~
 
-###### Option 2
+.. code-block:: sh
 
-1. Clone this repo
-2. `python setup.py install`
- 
-
-#### Credentials File Setup
-
-In a typical AWS credentials file, credentials are stored in sections, denoted by a pair of brackets: `[]` The `[default]` section stores your default credentials. You can store multiple sets of credentials using different profile names. If no profile is specified, the **default** section is used. 
-
-Long term credential sections are identified by the convention `[<profile_name>-long-term]`. Short term credentials are identified by the typical convention: `[<profile_name>]`. The following illustrates how you would configure you credentials file using **aws-mfa** with your default credentials:
-
-```
-[default-long-term]
-aws_access_key_id = YOUR_LONGTERM_KEY_ID
-aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
-
-```
-
-After running `aws-mfa`, your credentials file would read:
-
-```
-[defult-long-term]
-aws_access_key_id = YOUR_LONGTERM_KEY_ID
-aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+    1. Clone this repo
+    2. $ python setup.py install
 
 
-[default]
-aws_access_key_id = <POPULATED_BY_AWS-MFA>
-aws_secret_access_key = <POPULATED_BY_AWS-MFA>
-aws_security_token = <POPULATED_BY_AWS-MFA>
-```
+Credentials File Setup
+----------------------
+
+In a typical AWS credentials file, credentials are stored in sections, denoted by a pair of brackets: ``[]`` The ``[default]`` section stores your default credentials. You can store multiple sets of credentials using different profile names. If no profile is specified, the **default** section is used. 
+
+Long term credential sections are identified by the convention ``[<profile_name>-long-term]``. Short term credentials are identified by the typical convention: ``[<profile_name>]``. The following illustrates how you would configure you credentials file using **aws-mfa** with your default credentials:
+
+.. code-block:: ini
+
+    [default-long-term]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+
+
+After running ``aws-mfa``, your credentials file would read:
+
+.. code-block:: ini
+
+    [defult-long-term]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+
+
+    [default]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
 
 Similarly, if you utilize a credentials profile named **development**, your credentials file would look like:
 
-```
-[development-long-term]
-aws_access_key_id = YOUR_LONGTERM_KEY_ID
-aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+.. code-block:: ini
 
-```
+    [development-long-term]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+
+
 
 After running `aws-mfa`, your credentials file would read:
 
-```
-[development-long-term]
-aws_access_key_id = YOUR_LONGTERM_KEY_ID
-aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+.. code-block:: ini
+
+    [development-long-term]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+
+    [development] 
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
 
 
-[development]
-aws_access_key_id = <POPULATED_BY_AWS-MFA>
-aws_secret_access_key = <POPULATED_BY_AWS-MFA>
-aws_security_token = <POPULATED_BY_AWS-MFA>
-```
+Usage
+-----
 
+.. code-block:: ini
 
-##### Usage
-
-```
-usage: aws-mfa [-h] [--device arn:aws:iam::123456788990:mfa/dudeman]
+    usage: aws-mfa [-h] [--device arn:aws:iam::123456788990:mfa/dudeman]
                [--duration DURATION] [--profile PROFILE]
                [--assume-role arn:aws:iam::123456788990:role/RoleName]
                [--role-session-name ROLE_SESSION_NAME]
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --device arn:aws:iam::123456788990:mfa/dudeman
-                        The MFA Device ARN. This value can also be provided
-                        via the environment variable 'MFA_DEVICE`.
-  --duration DURATION   The duration, in seconds, indicating how long the
-                        temporary credentials should be valid. The minimum is
-                        900 seconds (15 minutes) and the maximum is 3600
-                        seconds (1 hour). This value can also be provided via
-                        the environment variable 'MFA_STS_DURATION'.
-  --profile PROFILE     If using profiles, specify the name here. The default
-                        profile name is 'default'
-  --assume-role arn:aws:iam::123456788990:role/RoleName
-                        The ARN of the AWS IAM Role you would like to assume,
-                        if specified. This value can aslo be providedvia the
-                        environment variable 'MFA_ASSUME_ROLE'
-  --role-session-name ROLE_SESSION_NAME
-                        Friendly session name required when using --assume-
-                        role.
-  ```
+    optional arguments:
+      -h, --help            show this help message and exit
+      --device arn:aws:iam::123456788990:mfa/dudeman
+                            The MFA Device ARN. This value can also be provided
+                            via the environment variable 'MFA_DEVICE`.
+     --duration DURATION    The duration, in seconds, indicating how long the
+                            temporary credentials should be valid. The minimum is
+                            900 seconds (15 minutes) and the maximum is 3600
+                            seconds (1 hour). This value can also be provided via
+                            the environment variable 'MFA_STS_DURATION'.
+     --profile PROFILE      If using profiles, specify the name here. The default
+                            profile name is 'default'
+     --assume-role arn:aws:iam::123456788990:role/RoleName
+                            The ARN of the AWS IAM Role you would like to assume,
+                            if specified. This value can aslo be providedvia the
+                            environment variable 'MFA_ASSUME_ROLE'
+     --role-session-name ROLE_SESSION_NAME
+                            Friendly session name required when using --assume-
+                            role.
 
-Argument precedence: Command line arguments take precedence over environment variables. 
+**Argument precedence**: Command line arguments take precedence over environment variables. 
 
-
-### Usage Example
+Usage Example
+-------------
 
 Run **aws-mfa** *before* running any of your scripts that use any AWS SDK.
 
-```
-$> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman
-INFO - Using profile: default
-INFO - Your credentials have expired, renewing.
-Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
-INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:07:09+00:00
-```
+.. code-block:: sh
+
+    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman
+    INFO - Using profile: default
+    INFO - Your credentials have expired, renewing.
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
+    INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:07:09+00:00
 
 Running again while credentials are still valid:
 
-```
-$> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman
-INFO - Using profile: default
-INFO - Your credentials are still valid for 1541.791134 seconds they will expire at 2015-12-21 23:07:09
-```
+.. code-block:: sh
+
+    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman
+    INFO - Using profile: default
+    INFO - Your credentials are still valid for 1541.791134 seconds they will expire at 2015-12-21 23:07:09
+
 
 Using environment variables:
 
-```
-export MFA_DEVICE=arn:aws:iam::123456788990:mfa/dudeman
-export MFA_STS_DURATION=1800
-$> aws-mfa
-INFO - Using profile: default
-INFO - Your credentials have expired, renewing.
-Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
-INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:07:09+00:00
-```
+.. code-block:: sh
 
-##### With Profiles
+    export MFA_DEVICE=arn:aws:iam::123456788990:mfa/dudeman
+    export MFA_STS_DURATION=1800
+    $> aws-mfa
+    INFO - Using profile: default
+    INFO - Your credentials have expired, renewing.
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
+    INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:07:09+00:00
 
-```
-$> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudema --profile development
-INFO - Using profile: development
-Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudema] (renewing for 1800 seconds):666666
-INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:09:04+00:00
-```
+With Profiles
+-------------
+
+.. code-block:: sh
+
+    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudema --profile development
+    INFO - Using profile: development
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudema] (renewing for 1800 seconds):666666
+    INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:09:04+00:00
