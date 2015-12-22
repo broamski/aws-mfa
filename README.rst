@@ -86,30 +86,23 @@ After running `aws-mfa`, your credentials file would read:
 Usage
 -----
 
-.. code-block:: ini
+.. code-block:: sh
 
-    usage: aws-mfa [-h] [--device arn:aws:iam::123456788990:mfa/dudeman]
-               [--duration DURATION] [--profile PROFILE]
-               [--assume-role arn:aws:iam::123456788990:role/RoleName]
-               [--role-session-name ROLE_SESSION_NAME]
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      --device arn:aws:iam::123456788990:mfa/dudeman
+    --device arn:aws:iam::123456788990:mfa/dudeman
                             The MFA Device ARN. This value can also be provided
                             via the environment variable 'MFA_DEVICE`.
-     --duration DURATION    The duration, in seconds, indicating how long the
+    --duration DURATION     The duration, in seconds, indicating how long the
                             temporary credentials should be valid. The minimum is
                             900 seconds (15 minutes) and the maximum is 3600
                             seconds (1 hour). This value can also be provided via
                             the environment variable 'MFA_STS_DURATION'.
-     --profile PROFILE      If using profiles, specify the name here. The default
+    --profile PROFILE       If using profiles, specify the name here. The default
                             profile name is 'default'
-     --assume-role arn:aws:iam::123456788990:role/RoleName
+    --assume-role arn:aws:iam::123456788990:role/RoleName
                             The ARN of the AWS IAM Role you would like to assume,
                             if specified. This value can aslo be providedvia the
                             environment variable 'MFA_ASSUME_ROLE'
-     --role-session-name ROLE_SESSION_NAME
+    --role-session-name ROLE_SESSION_NAME
                             Friendly session name required when using --assume-
                             role.
 
