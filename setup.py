@@ -5,6 +5,7 @@ setup(
     version='0.0.2',
     description='Manage AWS MFA Credentials',
     author='Brian Nuszkowski',
+    author_email='nuszkowski@protonmail.com',
     scripts=['aws-mfa'],
     url='https://github.com/broamski/aws-mfa',
     install_requires=['boto3>=1.2.3']
