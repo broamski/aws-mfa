@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='aws-mfa',
-    version='0.0.2',
+    version='0.0.3',
     description='Manage AWS MFA Credentials',
     author='Brian Nuszkowski',
     author_email='nuszkowski@protonmail.com',
