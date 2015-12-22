@@ -6,5 +6,6 @@ setup(
     description='Manage AWS MFA Credentials',
     author='Brian Nuszkowski',
     scripts=['aws-mfa'],
+    url='https://github.com/broamski/aws-mfa',
     install_requires=['boto3>=1.2.3']
 )
