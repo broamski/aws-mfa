@@ -90,7 +90,7 @@ Usage
 
     --device arn:aws:iam::123456788990:mfa/dudeman
                             The MFA Device ARN. This value can also be provided
-                            via the environment variable 'MFA_DEVICE`.
+                            via the environment variable 'MFA_DEVICE'.
     --duration DURATION     The duration, in seconds, indicating how long the
                             temporary credentials should be valid. The minimum is
                             900 seconds (15 minutes) and the maximum is 3600
@@ -100,11 +100,11 @@ Usage
                             profile name is 'default'
     --assume-role arn:aws:iam::123456788990:role/RoleName
                             The ARN of the AWS IAM Role you would like to assume,
-                            if specified. This value can aslo be providedvia the
+                            if specified. This value can also be provided via the
                             environment variable 'MFA_ASSUME_ROLE'
     --role-session-name ROLE_SESSION_NAME
                             Friendly session name required when using --assume-
-                            role.
+                            role
 
 **Argument precedence**: Command line arguments take precedence over environment variables. 
 
