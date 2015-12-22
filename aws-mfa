@@ -65,8 +65,8 @@ def main():
             sys.exit('You must provide --device or MFA_DEVICE')
 
     if not args.duration:
-        if os.environ.get('STS_DURATION'):
-            args.duration = int(os.environ.get('STS_DURATION'))
+        if os.environ.get('MFA_STS_DURATION'):
+            args.duration = int(os.environ.get('MFA_STS_DURATION'))
         else:
             args.duration = STS_DEFAULT
 
