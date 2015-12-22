@@ -1,0 +1,9 @@
+README.rst
+aws-mfa
+setup.cfg
+setup.py
+aws_mfa.egg-info/PKG-INFO
+aws_mfa.egg-info/SOURCES.txt
+aws_mfa.egg-info/dependency_links.txt
+aws_mfa.egg-info/requires.txt
+aws_mfa.egg-info/top_level.txt
