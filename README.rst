@@ -86,7 +86,7 @@ After running `aws-mfa`, your credentials file would read:
 Usage
 -----
 
-.. code-block:: sh
+Usage example::
 
     --device arn:aws:iam::123456788990:mfa/dudeman
                             The MFA Device ARN. This value can also be provided
