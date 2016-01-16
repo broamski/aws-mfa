@@ -1,0 +1,1 @@
+1.) Look at the current parameters being input, if the profile name matches the one being input and if a role arn is provided (assumed_role_arn) matches the current one, then attempt to validate by looking at the expiration date. If it's different, just prompt for new credentials.

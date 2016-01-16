@@ -5,6 +5,7 @@ try:
     import configparser
 except ImportError:
     import ConfigParser as configparser
+    from ConfigParser import NoOptionError, NoSectionError
 import datetime
 import logging
 import os
@@ -91,14 +92,14 @@ def validate(args, config):
     try:
         key_id = config.get(long_term_name, 'aws_access_key_id')
         access_key = config.get(long_term_name, 'aws_secret_access_key')
-    except configparser.NoSectionError:
+    except NoSectionError:
         logger.error(
             "Long term credentials session '[%s]' is missing. "
             "You must add this section to your credentials file "
             "along with your long term 'aws_access_key_id' and "
             "'aws_secret_access_key'" % (long_term_name,))
         sys.exit()
-    except configparser.NoOptionError as e:
+    except NoOptionError as e:
         logger.error(e)
         sys.exit()
 
@@ -131,7 +132,7 @@ def validate(args, config):
                     'Your credentials are still valid for %s seconds'
                     ' they will expire at %s'
                     % (diff.total_seconds(), expiration))
-        except configparser.NoOptionError:
+        except NoOptionError:
             logger.info("Your credentials are invalid, renewing.")
             get_credentials(short_term_name, key_id, access_key, args, config)
 
