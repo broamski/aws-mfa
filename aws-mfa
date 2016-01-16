@@ -86,7 +86,7 @@ def validate(args, config):
         short_term_name = args.profile
 
     long_term_name = '%s-long-term' % (short_term_name,)
-    logger.info('Using profile: %s' % (short_term_name,))
+    logger.info('Validating credentials for profile: %s' % (short_term_name,))
 
     try:
         key_id = config.get(long_term_name, 'aws_access_key_id')
