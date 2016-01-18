@@ -1,4 +1,4 @@
-.py[cod]
+*.py[cod]
 *.bak
 *.sw[po]
 
