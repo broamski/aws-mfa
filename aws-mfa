@@ -87,7 +87,13 @@ def validate(args, config):
         short_term_name = args.profile
 
     long_term_name = '%s-long-term' % (short_term_name,)
-    logger.info('Validating credentials for profile: %s' % (short_term_name,))
+    if args.assume_role:
+        role_msg = "with assumed role %s" % (args.assume_role,)
+    else:
+        role_msg = ""
+    logger.info('Validating credentials for profile: %s %s' %
+                (short_term_name, role_msg))
+    reup_message = "Obtaining credentials for a new role or profile."
 
     try:
         key_id = config.get(long_term_name, 'aws_access_key_id')
@@ -105,6 +111,8 @@ def validate(args, config):
 
     # Validate presence of short-term section
     if not config.has_section(short_term_name):
+        logger.info("Short term credentials section %s is missing, "
+                    "obtaining new credentials." % (short_term_name,))
         if short_term_name == 'default':
             configparser.DEFAULTSECT = short_term_name
             if sys.version_info.major == 3:
@@ -114,27 +122,71 @@ def validate(args, config):
         else:
             config.add_section(short_term_name)
         get_credentials(short_term_name, key_id, access_key, args, config)
+    # Validate option integrity of short-term section
     else:
+        required_options = ['assumed_role',
+                            'aws_access_key_id', 'aws_secret_access_key',
+                            'aws_session_token', 'aws_security_token',
+                            'expiration']
         try:
-            expiration = config.get(short_term_name, 'Expiration')
-            exp = datetime.datetime.strptime(expiration, '%Y-%m-%d %H:%M:%S')
+            short_term = {}
+            for option in required_options:
+                short_term[option] = config.get(short_term_name, option)
+        except NoOptionError:
+            logger.warn("Your existing credentials are missing or invalid, "
+                        "obtaining new credentials.")
+            get_credentials(short_term_name, key_id, access_key, args, config)
+
+        try:
+            current_role = config.get(short_term_name, 'assumed_role_arn')
+        except NoOptionError:
+            current_role = None
+
+        # There are not credentials for an assumed role,
+        # but the user is trying to assume one
+        if current_role is None and args.assume_role:
+            logger.info(reup_message)
+            get_credentials(short_term_name, key_id, access_key, args, config)
+        # There are current credentials for a role and
+        # the role arn being provided is the same.
+        elif (current_role is not None and
+                args.assume_role and current_role == args.assume_role):
+            exp = datetime.datetime.strptime(
+                short_term['expiration'], '%Y-%m-%d %H:%M:%S')
             diff = exp - datetime.datetime.utcnow()
             if diff.total_seconds() <= 0:
                 logger.info("Your credentials have expired, renewing.")
                 get_credentials(
                     short_term_name, key_id, access_key, args, config)
             else:
-                if config.getboolean(short_term_name, 'assumed_role'):
-                    logger.info('You are assuming the role: %s'
-                                % (config.get(
-                                    short_term_name, 'assumed_role_arn')))
                 logger.info(
-                    'Your credentials are still valid for %s seconds'
-                    ' they will expire at %s'
-                    % (diff.total_seconds(), expiration))
-        except NoOptionError:
-            logger.info("Your credentials are invalid, renewing.")
+                    "Your credentials are still valid for %s seconds"
+                    " they will expire at %s"
+                    % (diff.total_seconds(), short_term['expiration']))
+        # There are credentials for a current role and the role
+        # that is attempting to be assumed is different
+        elif (current_role is not None and
+              args.assume_role and current_role != args.assume_role):
+            logger.info(reup_message)
             get_credentials(short_term_name, key_id, access_key, args, config)
+        # There are credentials for a current role and no role arn is
+        # being supplied
+        elif current_role is not None and args.assume_role is None:
+            logger.info(reup_message)
+            get_credentials(short_term_name, key_id, access_key, args, config)
+        else:
+            exp = datetime.datetime.strptime(
+                short_term['expiration'], '%Y-%m-%d %H:%M:%S')
+            diff = exp - datetime.datetime.utcnow()
+            if diff.total_seconds() <= 0:
+                logger.info("Your credentials have expired, renewing.")
+                get_credentials(
+                    short_term_name, key_id, access_key, args, config)
+            else:
+                logger.info(
+                    "Your credentials are still valid for %s seconds"
+                    " they will expire at %s"
+                    % (diff.total_seconds(), short_term['expiration']))
 
 
 def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
@@ -212,7 +264,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     with open(AWS_CREDS_PATH, 'w') as configfile:
         config.write(configfile)
     logger.info(
-        'Success! Your credentials will expire in %s seconds at: %s'
+        "Success! Your credentials will expire in %s seconds at: %s"
         % (args.duration, response['Credentials']['Expiration']))
 
 if __name__ == "__main__":
