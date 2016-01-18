@@ -3,6 +3,7 @@
 import argparse
 try:
     import configparser
+    from configparser import NoOptionError, NoSectionError
 except ImportError:
     import ConfigParser as configparser
     from ConfigParser import NoOptionError, NoSectionError
