@@ -137,6 +137,7 @@ def validate(args, config):
             logger.warn("Your existing credentials are missing or invalid, "
                         "obtaining new credentials.")
             get_credentials(short_term_name, key_id, access_key, args, config)
+            sys.exit()
 
         try:
             current_role = config.get(short_term_name, 'assumed_role_arn')
