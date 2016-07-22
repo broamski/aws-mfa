@@ -153,7 +153,7 @@ def validate(args, config):
         elif (current_role is not None and
                 args.assume_role and current_role == args.assume_role):
             exp = datetime.datetime.strptime(
-                short_term['expiration'], '%Y-%m-%d %H:%M:%S')
+                config.get(short_term_name, 'expiration'), '%Y-%m-%d %H:%M:%S')
             diff = exp - datetime.datetime.utcnow()
             if diff.total_seconds() <= 0:
                 logger.info("Your credentials have expired, renewing.")
@@ -163,7 +163,7 @@ def validate(args, config):
                 logger.info(
                     "Your credentials are still valid for %s seconds"
                     " they will expire at %s"
-                    % (diff.total_seconds(), short_term['expiration']))
+                    % (diff.total_seconds(), exp))
         # There are credentials for a current role and the role
         # that is attempting to be assumed is different
         elif (current_role is not None and
@@ -177,7 +177,7 @@ def validate(args, config):
             get_credentials(short_term_name, key_id, access_key, args, config)
         else:
             exp = datetime.datetime.strptime(
-                short_term['expiration'], '%Y-%m-%d %H:%M:%S')
+                config.get(short_term_name, 'expiration'), '%Y-%m-%d %H:%M:%S')
             diff = exp - datetime.datetime.utcnow()
             if diff.total_seconds() <= 0:
                 logger.info("Your credentials have expired, renewing.")
@@ -187,7 +187,7 @@ def validate(args, config):
                 logger.info(
                     "Your credentials are still valid for %s seconds"
                     " they will expire at %s"
-                    % (diff.total_seconds(), short_term['expiration']))
+                    % (diff.total_seconds(), exp))
 
 
 def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
