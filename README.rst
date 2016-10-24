@@ -148,8 +148,7 @@ Output of running **aws-mfa** while credentials are still valid:
     INFO - Your credentials are still valid for 1541.791134 seconds they will expire at 2015-12-21 23:07:09
 
 
-With Profiles
--------------
+With profile:
 
 .. code-block:: sh
 
@@ -157,3 +156,13 @@ With Profiles
     INFO - Using profile: development
     Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):666666
     INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:09:04+00:00
+
+Assume role:
+
+.. code-block:: sh
+
+    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman --profile development --assume-role arn:aws:iam::123456788990:role/some-role --role-session-name some-role-session
+    INFO - Validating credentials for profile: development with assumed role arn:aws:iam::123456788990:role/some-role
+    INFO - Obtaining credentials for a new role or profile.
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
+    INFO - Success! Your credentials will expire in 1800 seconds at: 2016-10-24 18:58:17+00:00
