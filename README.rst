@@ -131,6 +131,15 @@ Using environment variables:
 .. code-block:: sh
 
     export MFA_DEVICE=arn:aws:iam::123456788990:mfa/dudeman
+    $> aws-mfa --duration 1800
+    INFO - Using profile: default
+    INFO - Your credentials have expired, renewing.
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
+    INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:07:09+00:00
+
+.. code-block:: sh
+
+    export MFA_DEVICE=arn:aws:iam::123456788990:mfa/dudeman
     export MFA_STS_DURATION=1800
     $> aws-mfa
     INFO - Using profile: default
@@ -143,12 +152,12 @@ Output of running **aws-mfa** while credentials are still valid:
 
 .. code-block:: sh
 
-    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman
+    $> aws-mfa
     INFO - Using profile: default
     INFO - Your credentials are still valid for 1541.791134 seconds they will expire at 2015-12-21 23:07:09
 
 
-With profile:
+Using a profile: (profiles allow you to reference different sets of credentials, perhaps for different users or different regions)
 
 .. code-block:: sh
 
@@ -157,7 +166,17 @@ With profile:
     Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):666666
     INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:09:04+00:00
 
-Assume role:
+Assuming a role:
+
+.. code-block:: sh
+
+    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman --assume-role arn:aws:iam::123456788990:role/some-role --role-session-name some-role-session
+    INFO - Validating credentials for profile: default  with assumed role arn:aws:iam::123456788990:role/some-role
+    INFO - Obtaining credentials for a new role or profile.
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
+    INFO - Success! Your credentials will expire in 1800 seconds at: 2016-10-24 18:58:17+00:00
+
+Assuming a role using a profile:
 
 .. code-block:: sh
 
