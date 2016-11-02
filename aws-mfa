@@ -48,8 +48,8 @@ def main():
     parser.add_argument('--assume-role',
                         metavar='arn:aws:iam::123456788990:role/RoleName',
                         help="The ARN of the AWS IAM Role you would like to "
-                        "assume, if specified. This value can also be provided "
-                        "via the environment variable 'MFA_ASSUME_ROLE'",
+                        "assume, if specified. This value can also be provided"
+                        " via the environment variable 'MFA_ASSUME_ROLE'",
                         required=False)
     parser.add_argument('--role-session-name',
                         help="Friendly session name required when using "
