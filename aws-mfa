@@ -27,7 +27,6 @@ STS_DEFAULT = 900
 
 
 def main():
-    STS_DEFAULT = 900
     parser = argparse.ArgumentParser()
     parser.add_argument('--device',
                         required=False,
