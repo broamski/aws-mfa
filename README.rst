@@ -167,7 +167,7 @@ Using a profile: (profiles allow you to reference different sets of credentials,
     Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):666666
     INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:09:04+00:00
 
-Or you can set the profile via `AWS_PROFILE`:
+Using a profile that is set via the environment variable `AWS_PROFILE`:
 
 .. code-block:: sh
 
