@@ -277,5 +277,6 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         "Success! Your credentials will expire in %s seconds at: %s"
         % (args.duration, response['Credentials']['Expiration']))
 
+
 if __name__ == "__main__":
     main()
