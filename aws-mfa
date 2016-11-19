@@ -43,7 +43,9 @@ def main():
                         "'MFA_STS_DURATION'.")
     parser.add_argument('--profile',
                         help="If using profiles, specify the name here. The "
-                        "default profile name is 'default'",
+                        "default profile name is 'default'. The value can "
+                        "also be provided via the environment variable "
+                        "'AWS_PROFILE'.",
                         required=False)
     parser.add_argument('--assume-role',
                         metavar='arn:aws:iam::123456788990:role/RoleName',
@@ -67,9 +69,13 @@ def main():
 
 
 def validate(args, config):
-    short_term_name = 'default'
-    if args.profile:
-        short_term_name = args.profile
+    if not args.profile:
+        if os.environ.get('AWS_PROFILE'):
+            args.profile = os.environ.get('AWS_PROFILE')
+        else:
+            args.profile = 'default'
+
+    short_term_name = args.profile
 
     long_term_name = '%s-long-term' % (short_term_name,)
     if args.assume_role:
