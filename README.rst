@@ -1,7 +1,7 @@
 aws-mfa: Easily manage your AWS Security Credentials when using Multi-Factor Authentication (MFA)
 =================================================================================================
 
-**aws-mfa** makes it easy to manage your AWS SDK Security Credentials when Multi-Factor Authentication (MFA) is enforced on your AWS account. It automates the process of obtaining temporary credentials from the `AWS Security Token Service 
+**aws-mfa** makes it easy to manage your AWS SDK Security Credentials when Multi-Factor Authentication (MFA) is enforced on your AWS account. It automates the process of obtaining temporary credentials from the `AWS Security Token Service
 <http://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html>`_ and updating your `AWS Credentials <https://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs>`_ file (located at ``~/.aws/credentials``). Traditional methods of managing MFA-based credentials requires users to write their own bespoke scripts/wrappers to fetch temporary credentials from STS and often times manually update their AWS credentials file.
 
 The concept behind **aws-mfa** is that there are 2 types of credentials:
@@ -34,7 +34,7 @@ Option 2
 Credentials File Setup
 ----------------------
 
-In a typical AWS credentials file (located at ``~/.aws/credentials``), credentials are stored in sections, denoted by a pair of brackets: ``[]``. The ``[default]`` section stores your default credentials. You can store multiple sets of credentials using different profile names. If no profile is specified, the ``[default]`` section is always used. 
+In a typical AWS credentials file (located at ``~/.aws/credentials``), credentials are stored in sections, denoted by a pair of brackets: ``[]``. The ``[default]`` section stores your default credentials. You can store multiple sets of credentials using different profile names. If no profile is specified, the ``[default]`` section is always used.
 
 Long term credential sections are identified by the convention ``[<profile_name>-long-term]``. Short term credentials are identified by the typical convention: ``[<profile_name>]``. The following illustrates how you would configure you credentials file using **aws-mfa** with your default credentials:
 
@@ -78,7 +78,7 @@ After running `aws-mfa`, your credentials file would read:
     aws_access_key_id = YOUR_LONGTERM_KEY_ID
     aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
 
-    [development] 
+    [development]
     aws_access_key_id = <POPULATED_BY_AWS-MFA>
     aws_secret_access_key = <POPULATED_BY_AWS-MFA>
     aws_security_token = <POPULATED_BY_AWS-MFA>
@@ -98,7 +98,8 @@ Usage
                             seconds (1 hour). This value can also be provided via
                             the environment variable 'MFA_STS_DURATION'.
     --profile PROFILE       If using profiles, specify the name here. The default
-                            profile name is 'default'
+                            profile name is 'default'. The value can also be
+                            provided via the environment variable 'AWS_PROFILE'.
     --assume-role arn:aws:iam::123456788990:role/RoleName
                             The ARN of the AWS IAM Role you would like to assume,
                             if specified. This value can also be provided via the
@@ -107,7 +108,7 @@ Usage
                             Friendly session name required when using --assume-
                             role
 
-**Argument precedence**: Command line arguments take precedence over environment variables. 
+**Argument precedence**: Command line arguments take precedence over environment variables.
 
 Usage Example
 -------------
@@ -162,6 +163,16 @@ Using a profile: (profiles allow you to reference different sets of credentials,
 .. code-block:: sh
 
     $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman --profile development
+    INFO - Using profile: development
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):666666
+    INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:09:04+00:00
+
+Using a profile that is set via the environment variable `AWS_PROFILE`:
+
+.. code-block:: sh
+
+    $> export AWS_PROFILE=development
+    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman
     INFO - Using profile: development
     Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):666666
     INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:09:04+00:00
