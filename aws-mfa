@@ -32,7 +32,9 @@ def main():
                         required=False,
                         metavar='arn:aws:iam::123456788990:mfa/dudeman',
                         help="The MFA Device ARN. This value can also be "
-                        "provided via the environment variable 'MFA_DEVICE'")
+                        "provided via the environment variable 'MFA_DEVICE' "
+                        "or the variable 'aws_mfa_device' "
+                        "in ~/.aws/credentials.")
     parser.add_argument('--duration',
                         type=int,
                         help="The duration, in seconds, indicating how long "
