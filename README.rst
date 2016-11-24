@@ -92,10 +92,11 @@ Usage
     --device arn:aws:iam::123456788990:mfa/dudeman
                             The MFA Device ARN. This value can also be provided
                             via the environment variable 'MFA_DEVICE'.
-    --duration DURATION     The duration, in seconds, indicating how long the
-                            temporary credentials should be valid. The minimum is
-                            900 seconds (15 minutes) and the maximum is 3600
-                            seconds (1 hour). This value can also be provided via
+    --duration DURATION     The duration, in seconds, that the temporary
+                            credentials should remain valid. Minimum value: 900
+                            (15 minutes). Maximum: 129600 (36 hours). Defaults to
+                            43200 (12 hours), or 3600 (one hour) when using
+                            '--assume-role'. This value can also be provided via
                             the environment variable 'MFA_STS_DURATION'.
     --profile PROFILE       If using profiles, specify the name here. The default
                             profile name is 'default'. The value can also be
