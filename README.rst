@@ -91,7 +91,8 @@ Usage
 
     --device arn:aws:iam::123456788990:mfa/dudeman
                             The MFA Device ARN. This value can also be provided
-                            via the environment variable 'MFA_DEVICE'.
+                            via the environment variable 'MFA_DEVICE' or the
+                            ~/.aws/credentials variable 'aws_mfa_device'.
     --duration DURATION     The duration, in seconds, that the temporary
                             credentials should remain valid. Minimum value: 900
                             (15 minutes). Maximum: 129600 (36 hours). Defaults to
