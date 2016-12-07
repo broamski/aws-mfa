@@ -11,7 +11,6 @@ import datetime
 import logging
 import os
 import sys
-
 import boto3
 
 logger = logging.getLogger('botomfa')
@@ -23,7 +22,6 @@ logger.addHandler(stdout_handler)
 logger.setLevel(logging.DEBUG)
 
 AWS_CREDS_PATH = '%s/.aws/credentials' % (os.path.expanduser('~'),)
-STS_DEFAULT = 900
 
 
 def main():
@@ -32,15 +30,17 @@ def main():
                         required=False,
                         metavar='arn:aws:iam::123456788990:mfa/dudeman',
                         help="The MFA Device ARN. This value can also be "
-                        "provided via the environment variable 'MFA_DEVICE'")
+                        "provided via the environment variable 'MFA_DEVICE' or"
+                        " the ~/.aws/credentials variable 'aws_mfa_device'.")
     parser.add_argument('--duration',
                         type=int,
-                        help="The duration, in seconds, indicating how long "
-                        "the temporary credentials should be valid. The "
-                        "minimum is 900 seconds (15 minutes) and the maximum "
-                        "is 3600 seconds (1 hour). This value can also be "
-                        "provided via the environment variable "
-                        "'MFA_STS_DURATION'.")
+                        help="The duration, in seconds, that the temporary "
+                             "credentials should remain valid. Minimum value: "
+                             "900 (15 minutes). Maximum: 129600 (36 hours). "
+                             "Defaults to 43200 (12 hours), or 3600 (one "
+                             "hour) when using '--assume-role'. This value "
+                             "can also be provided via the environment "
+                             "variable 'MFA_STS_DURATION'. ")
     parser.add_argument('--profile',
                         help="If using profiles, specify the name here. The "
                         "default profile name is 'default'. The value can "
@@ -60,7 +60,8 @@ def main():
     args = parser.parse_args()
 
     if not os.path.isfile(AWS_CREDS_PATH):
-        sys.exit('Could not locate credentials file at %s' % (AWS_CREDS_PATH,))
+        log_error_and_exit('Could not locate credentials file at '
+                           '%s' % (AWS_CREDS_PATH,))
 
     config = configparser.RawConfigParser()
     config.read(AWS_CREDS_PATH)
@@ -90,34 +91,36 @@ def validate(args, config):
         key_id = config.get(long_term_name, 'aws_access_key_id')
         access_key = config.get(long_term_name, 'aws_secret_access_key')
     except NoSectionError:
-        logger.error(
+        log_error_and_exit(
             "Long term credentials session '[%s]' is missing. "
             "You must add this section to your credentials file "
             "along with your long term 'aws_access_key_id' and "
             "'aws_secret_access_key'" % (long_term_name,))
-        sys.exit()
     except NoOptionError as e:
-        logger.error(e)
-        sys.exit()
+        log_error_and_exit(e)
 
+    # get device from param, env var or config
     if not args.device:
         if os.environ.get('MFA_DEVICE'):
             args.device = os.environ.get('MFA_DEVICE')
         elif config.has_option(long_term_name, 'aws_mfa_device'):
             args.device = config.get(long_term_name, 'aws_mfa_device')
         else:
-            sys.exit('You must provide --device or MFA_DEVICE or set '
-                     '"aws_mfa_device" in ".aws/credentials"')
+            log_error_and_exit(
+                'You must provide --device or MFA_DEVICE or set '
+                '"aws_mfa_device" in ".aws/credentials"')
 
+    # get assume_role from param or env var
+    if not args.assume_role:
+        if os.environ.get('MFA_ASSUME_ROLE'):
+            args.assume_role = os.environ.get('MFA_ASSUME_ROLE')
+
+    # get duration from param, env var or set default
     if not args.duration:
         if os.environ.get('MFA_STS_DURATION'):
             args.duration = int(os.environ.get('MFA_STS_DURATION'))
         else:
-            args.duration = STS_DEFAULT
-
-    if not args.assume_role:
-        if os.environ.get('MFA_ASSUME_ROLE'):
-            args.assume_role = os.environ.get('MFA_ASSUME_ROLE')
+            args.duration = 3600 if args.assume_role else 43200
 
     # Validate presence of short-term section
     if not config.has_section(short_term_name):
@@ -199,6 +202,12 @@ def validate(args, config):
                     % (diff.total_seconds(), exp))
 
 
+def log_error_and_exit(message):
+    """Log an error message and exit with error"""
+    logger.error(message)
+    sys.exit(1)
+
+
 def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     try:
         token_input = raw_input
@@ -216,10 +225,11 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     )
 
     if args.assume_role:
+
         if args.role_session_name is None:
-            logger.error("You must specify a role session name "
-                         "via --role-session-name")
-            sys.exit()
+            log_error_and_exit("You must specify a role session name "
+                               "via --role-session-name")
+
         response = client.assume_role(
             RoleArn=args.assume_role,
             RoleSessionName=args.role_session_name,
@@ -227,6 +237,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             SerialNumber=args.device,
             TokenCode=mfa_token
         )
+
         config.set(
             short_term_name,
             'assumed_role',
@@ -243,6 +254,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             SerialNumber=args.device,
             TokenCode=mfa_token
         )
+
         config.set(
             short_term_name,
             'assumed_role',
@@ -276,6 +288,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     logger.info(
         "Success! Your credentials will expire in %s seconds at: %s"
         % (args.duration, response['Credentials']['Expiration']))
+    sys.exit(0)
 
 
 if __name__ == "__main__":
