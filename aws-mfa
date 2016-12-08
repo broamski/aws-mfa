@@ -51,21 +51,20 @@ def main():
                         help="Friendly session name required when using "
                         "--assume-role",
                         required=False)
-    parser.add_argument('--quiet',
-                        action='store_true',
-                        help="Decrease output verbosity.",
-                        default=False,
-                        required=False)
+    parser.add_argument('--log-level',
+                        help="Set log level",
+                        choices=[
+                            'CRITICAL', 'ERROR', 'WARNING',
+                            'INFO', 'DEBUG', 'NOTSET'
+                        ],
+                        required=False,
+                        default='DEBUG')
     args = parser.parse_args()
 
     if not os.path.isfile(AWS_CREDS_PATH):
         sys.exit('Could not locate credentials file at %s' % (AWS_CREDS_PATH,))
 
-    if args.quiet:
-        level = logging.ERROR
-    else:
-        level = logging.DEBUG
-
+    level = getattr(logging, args.log_level)
     setup_logger(level)
 
     config = configparser.RawConfigParser()
