@@ -14,12 +14,6 @@ import sys
 import boto3
 
 logger = logging.getLogger('botomfa')
-stdout_handler = logging.StreamHandler(stream=sys.stdout)
-stdout_handler.setFormatter(
-    logging.Formatter('%(levelname)s - %(message)s'))
-stdout_handler.setLevel(logging.DEBUG)
-logger.addHandler(stdout_handler)
-logger.setLevel(logging.DEBUG)
 
 AWS_CREDS_PATH = '%s/.aws/credentials' % (os.path.expanduser('~'),)
 
@@ -57,11 +51,22 @@ def main():
                         help="Friendly session name required when using "
                         "--assume-role",
                         required=False)
+    parser.add_argument('--log-level',
+                        help="Set log level",
+                        choices=[
+                            'CRITICAL', 'ERROR', 'WARNING',
+                            'INFO', 'DEBUG', 'NOTSET'
+                        ],
+                        required=False,
+                        default='DEBUG')
     args = parser.parse_args()
 
     if not os.path.isfile(AWS_CREDS_PATH):
         log_error_and_exit('Could not locate credentials file at '
                            '%s' % (AWS_CREDS_PATH,))
+
+    level = getattr(logging, args.log_level)
+    setup_logger(level)
 
     config = configparser.RawConfigParser()
     config.read(AWS_CREDS_PATH)
@@ -289,6 +294,15 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         "Success! Your credentials will expire in %s seconds at: %s"
         % (args.duration, response['Credentials']['Expiration']))
     sys.exit(0)
+
+
+def setup_logger(level=logging.DEBUG):
+    stdout_handler = logging.StreamHandler(stream=sys.stdout)
+    stdout_handler.setFormatter(
+        logging.Formatter('%(levelname)s - %(message)s'))
+    stdout_handler.setLevel(level)
+    logger.addHandler(stdout_handler)
+    logger.setLevel(level)
 
 
 if __name__ == "__main__":
