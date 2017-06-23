@@ -69,7 +69,7 @@ Similarly, if you utilize a credentials profile named **development**, your cred
 
 
 
-After running `aws-mfa`, your credentials file would read:
+After running ``aws-mfa``, your credentials file would read:
 
 .. code-block:: ini
 
@@ -87,7 +87,7 @@ The default naming convention for the credential section can be overriden by usi
 that manages the IAM users for your organization and have other AWS accounts for development, staging and production
 environments.
 
-After running `aws-mfa` once for each environment with a different value for ``--short-term-suffix``, your credentials
+After running ``aws-mfa`` once for each environment with a different value for ``--short-term-suffix``, your credentials
 file would read:
 
 .. code-block:: ini
@@ -115,7 +115,7 @@ This allows you to access multiple environments without the need to run `aws-mfa
 environments.
 
 If you don't like the a long term suffix, you can omit it by passing the value `none` for the ``--long-term-suffix``
-command line argument. After running `aws-mfa` once for each environment with a different value for
+command line argument. After running ``aws-mfa`` once for each environment with a different value for
 ``--short-term-suffix``, your credentials file would read:
 
 .. code-block:: ini
