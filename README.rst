@@ -36,7 +36,7 @@ Credentials File Setup
 
 In a typical AWS credentials file (located at ``~/.aws/credentials``), credentials are stored in sections, denoted by a pair of brackets: ``[]``. The ``[default]`` section stores your default credentials. You can store multiple sets of credentials using different profile names. If no profile is specified, the ``[default]`` section is always used.
 
-Long term credential sections are identified by the convention ``[<profile_name>-long-term]``. Short term credentials are identified by the typical convention: ``[<profile_name>]``. The following illustrates how you would configure you credentials file using **aws-mfa** with your default credentials:
+By default long term credential sections are identified by the convention ``[<profile_name>-long-term]`` and short term credentials are identified by the typical convention: ``[<profile_name>]``. The following illustrates how you would configure you credentials file using **aws-mfa** with your default credentials:
 
 .. code-block:: ini
 
@@ -49,7 +49,7 @@ After running ``aws-mfa``, your credentials file would read:
 
 .. code-block:: ini
 
-    [defult-long-term]
+    [default-long-term]
     aws_access_key_id = YOUR_LONGTERM_KEY_ID
     aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
 
@@ -58,7 +58,6 @@ After running ``aws-mfa``, your credentials file would read:
     aws_access_key_id = <POPULATED_BY_AWS-MFA>
     aws_secret_access_key = <POPULATED_BY_AWS-MFA>
     aws_security_token = <POPULATED_BY_AWS-MFA>
-
 
 Similarly, if you utilize a credentials profile named **development**, your credentials file would look like:
 
@@ -83,6 +82,8 @@ After running `aws-mfa`, your credentials file would read:
     aws_secret_access_key = <POPULATED_BY_AWS-MFA>
     aws_security_token = <POPULATED_BY_AWS-MFA>
 
+The default naming convention for the credential section con be overriden by using the ``--long-term-suffix`` and 
+``--short-term-suffix`` command line arguments.
 
 Usage
 -----
@@ -102,6 +103,16 @@ Usage
     --profile PROFILE       If using profiles, specify the name here. The default
                             profile name is 'default'. The value can also be
                             provided via the environment variable 'AWS_PROFILE'.
+    --long-term-suffix LONG_TERM_SUFFIX
+                            To identify the long term credential section by
+                            ``[<profile_name>-LONG_TERM_SUFFIX]``. Use **none** to
+                            identify the long term credential section by
+                            ``[<profile_name>]``.
+    --short-term-suffix SHORT_TERM_SUFFIX
+                            To identify the long term credential section by
+                            ``[<profile_name>-SHORT_TERM_SUFFIX]``. Use **none** to
+                            identify the long term credential section by
+                            ``[<profile_name>]``.
     --assume-role arn:aws:iam::123456788990:role/RoleName
                             The ARN of the AWS IAM Role you would like to assume,
                             if specified. This value can also be provided via the
