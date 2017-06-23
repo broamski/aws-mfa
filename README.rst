@@ -36,7 +36,7 @@ Credentials File Setup
 
 In a typical AWS credentials file (located at ``~/.aws/credentials``), credentials are stored in sections, denoted by a pair of brackets: ``[]``. The ``[default]`` section stores your default credentials. You can store multiple sets of credentials using different profile names. If no profile is specified, the ``[default]`` section is always used.
 
-Long term credential sections are identified by the convention ``[<profile_name>-long-term]``. Short term credentials are identified by the typical convention: ``[<profile_name>]``. The following illustrates how you would configure you credentials file using **aws-mfa** with your default credentials:
+By default long term credential sections are identified by the convention ``[<profile_name>-long-term]`` and short term credentials are identified by the typical convention: ``[<profile_name>]``. The following illustrates how you would configure you credentials file using **aws-mfa** with your default credentials:
 
 .. code-block:: ini
 
@@ -49,7 +49,7 @@ After running ``aws-mfa``, your credentials file would read:
 
 .. code-block:: ini
 
-    [defult-long-term]
+    [default-long-term]
     aws_access_key_id = YOUR_LONGTERM_KEY_ID
     aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
 
@@ -58,7 +58,6 @@ After running ``aws-mfa``, your credentials file would read:
     aws_access_key_id = <POPULATED_BY_AWS-MFA>
     aws_secret_access_key = <POPULATED_BY_AWS-MFA>
     aws_security_token = <POPULATED_BY_AWS-MFA>
-
 
 Similarly, if you utilize a credentials profile named **development**, your credentials file would look like:
 
@@ -70,7 +69,7 @@ Similarly, if you utilize a credentials profile named **development**, your cred
 
 
 
-After running `aws-mfa`, your credentials file would read:
+After running ``aws-mfa``, your credentials file would read:
 
 .. code-block:: ini
 
@@ -83,6 +82,62 @@ After running `aws-mfa`, your credentials file would read:
     aws_secret_access_key = <POPULATED_BY_AWS-MFA>
     aws_security_token = <POPULATED_BY_AWS-MFA>
 
+The default naming convention for the credential section can be overriden by using the ``--long-term-suffix`` and
+``--short-term-suffix`` command line arguments. For example, in a multi account scenario you can have one AWS account
+that manages the IAM users for your organization and have other AWS accounts for development, staging and production
+environments.
+
+After running ``aws-mfa`` once for each environment with a different value for ``--short-term-suffix``, your credentials
+file would read:
+
+.. code-block:: ini
+
+    [myorganization-long-term]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+
+    [myorganization-development]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+    [myorganization-staging]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+    [myorganization-production]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+This allows you to access multiple environments without the need to run `aws-mfa` each time you want to switch
+environments.
+
+If you don't like the a long term suffix, you can omit it by passing the value ``none`` for the ``--long-term-suffix``
+command line argument. After running ``aws-mfa`` once for each environment with a different value for
+``--short-term-suffix``, your credentials file would read:
+
+.. code-block:: ini
+
+    [myorganization]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+
+    [myorganization-development]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+    [myorganization-staging]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+    [myorganization-production]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
 
 Usage
 -----
@@ -102,6 +157,17 @@ Usage
     --profile PROFILE       If using profiles, specify the name here. The default
                             profile name is 'default'. The value can also be
                             provided via the environment variable 'AWS_PROFILE'.
+    --long-term-suffix LONG_TERM_SUFFIX
+                            To identify the long term credential section by
+                            [<profile_name>-LONG_TERM_SUFFIX]. Use 'none' to
+                            identify the long term credential section by
+                            [<profile_name>]. Omit to identify the long term 
+                            credential section by [<profile_name>-long-term].
+    --short-term-suffix SHORT_TERM_SUFFIX
+                            To identify the short term credential section by
+                            [<profile_name>-SHORT_TERM_SUFFIX]. Omit or use 'none'
+                            to identify the short term credential section by
+                            [<profile_name>].
     --assume-role arn:aws:iam::123456788990:role/RoleName
                             The ARN of the AWS IAM Role you would like to assume,
                             if specified. This value can also be provided via the
