@@ -82,8 +82,62 @@ After running `aws-mfa`, your credentials file would read:
     aws_secret_access_key = <POPULATED_BY_AWS-MFA>
     aws_security_token = <POPULATED_BY_AWS-MFA>
 
-The default naming convention for the credential section con be overriden by using the ``--long-term-suffix`` and 
-``--short-term-suffix`` command line arguments.
+The default naming convention for the credential section can be overriden by using the ``--long-term-suffix`` and
+``--short-term-suffix`` command line arguments. For example, in a multi account scenario you can have one AWS account
+that manages the IAM users for your organization and have other AWS accounts for development, staging and production
+environments.
+
+After running `aws-mfa` once for each environment with a different value for ``--short-term-suffix``, your credentials
+file would read:
+
+.. code-block:: ini
+
+    [myorganization-long-term]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+
+    [myorganization-development]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+    [myorganization-staging]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+    [myorganization-production]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+This allows you to access multiple environments without the need to run `aws-mfa` each time you want to switch
+environments.
+
+If you don't like the a long term suffix, you can omit it by passing the value `none` for the ``--long-term-suffix``
+command line argument. After running `aws-mfa` once for each environment with a different value for
+``--short-term-suffix``, your credentials file would read:
+
+.. code-block:: ini
+
+    [myorganization]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+
+    [myorganization-development]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+    [myorganization-staging]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
+
+    [myorganization-production]
+    aws_access_key_id = <POPULATED_BY_AWS-MFA>
+    aws_secret_access_key = <POPULATED_BY_AWS-MFA>
+    aws_security_token = <POPULATED_BY_AWS-MFA>
 
 Usage
 -----
