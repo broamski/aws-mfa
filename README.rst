@@ -114,7 +114,7 @@ file would read:
 This allows you to access multiple environments without the need to run `aws-mfa` each time you want to switch
 environments.
 
-If you don't like the a long term suffix, you can omit it by passing the value `none` for the ``--long-term-suffix``
+If you don't like the a long term suffix, you can omit it by passing the value ``none`` for the ``--long-term-suffix``
 command line argument. After running ``aws-mfa`` once for each environment with a different value for
 ``--short-term-suffix``, your credentials file would read:
 
