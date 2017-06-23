@@ -102,7 +102,8 @@ def validate(args, config):
         short_term_name = '%s-%s' % (args.profile, args.short_term_suffix)
 
     if long_term_name == short_term_name:
-        log_error_and_exit("The value for '--long-term-suffix' cannot "
+        log_error_and_exit(
+            "The value for '--long-term-suffix' cannot "
             "be equal to the value for '--short-term-suffix'")
 
     if args.assume_role:
