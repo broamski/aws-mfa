@@ -164,7 +164,7 @@ Usage
                             [<profile_name>]. Omit to identify the long term 
                             credential section by [<profile_name>-long-term].
     --short-term-suffix SHORT_TERM_SUFFIX
-                            To identify the long term credential section by
+                            To identify the short term credential section by
                             [<profile_name>-SHORT_TERM_SUFFIX]. Omit or use 'none'
                             to identify the short term credential section by
                             [<profile_name>].
