@@ -105,14 +105,15 @@ Usage
                             provided via the environment variable 'AWS_PROFILE'.
     --long-term-suffix LONG_TERM_SUFFIX
                             To identify the long term credential section by
-                            ``[<profile_name>-LONG_TERM_SUFFIX]``. Use **none** to
+                            [<profile_name>-LONG_TERM_SUFFIX]. Use 'none' to
                             identify the long term credential section by
-                            ``[<profile_name>]``.
+                            [<profile_name>]. Omit to identify the long term 
+                            credential section by [<profile_name>-long-term].
     --short-term-suffix SHORT_TERM_SUFFIX
                             To identify the long term credential section by
-                            ``[<profile_name>-SHORT_TERM_SUFFIX]``. Use **none** to
-                            identify the long term credential section by
-                            ``[<profile_name>]``.
+                            [<profile_name>-SHORT_TERM_SUFFIX]. Omit or use 'none'
+                            to identify the short term credential section by
+                            [<profile_name>].
     --assume-role arn:aws:iam::123456788990:role/RoleName
                             The ARN of the AWS IAM Role you would like to assume,
                             if specified. This value can also be provided via the
