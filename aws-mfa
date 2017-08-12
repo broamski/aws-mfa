@@ -51,6 +51,10 @@ def main():
                         help="Friendly session name required when using "
                         "--assume-role",
                         required=False)
+    parser.add_argument('--force',
+                        help="Refresh credentials even if currently valid.",
+                        action="store_true",
+                        required=False)
     parser.add_argument('--log-level',
                         help="Set log level",
                         choices=[
@@ -127,6 +131,10 @@ def validate(args, config):
         else:
             args.duration = 3600 if args.assume_role else 43200
 
+    # If this is False, only refresh credentials if expired. Otherwise
+    # always refresh.
+    force_refresh = False
+
     # Validate presence of short-term section
     if not config.has_section(short_term_name):
         logger.info("Short term credentials section %s is missing, "
@@ -139,7 +147,7 @@ def validate(args, config):
             config.remove_option(short_term_name, 'CREATE')
         else:
             config.add_section(short_term_name)
-        get_credentials(short_term_name, key_id, access_key, args, config)
+        force_refresh = True
     # Validate option integrity of short-term section
     else:
         required_options = ['assumed_role',
@@ -153,58 +161,56 @@ def validate(args, config):
         except NoOptionError:
             logger.warn("Your existing credentials are missing or invalid, "
                         "obtaining new credentials.")
-            get_credentials(short_term_name, key_id, access_key, args, config)
+            force_refresh = True
 
         try:
             current_role = config.get(short_term_name, 'assumed_role_arn')
         except NoOptionError:
             current_role = None
 
+        if args.force:
+            logger.info("Forcing refresh of credentials.")
+            force_refresh = True
         # There are not credentials for an assumed role,
         # but the user is trying to assume one
-        if current_role is None and args.assume_role:
+        elif current_role is None and args.assume_role:
             logger.info(reup_message)
-            get_credentials(short_term_name, key_id, access_key, args, config)
+            force_refresh = True
         # There are current credentials for a role and
         # the role arn being provided is the same.
         elif (current_role is not None and
                 args.assume_role and current_role == args.assume_role):
-            exp = datetime.datetime.strptime(
-                config.get(short_term_name, 'expiration'), '%Y-%m-%d %H:%M:%S')
-            diff = exp - datetime.datetime.utcnow()
-            if diff.total_seconds() <= 0:
-                logger.info("Your credentials have expired, renewing.")
-                get_credentials(
-                    short_term_name, key_id, access_key, args, config)
-            else:
-                logger.info(
-                    "Your credentials are still valid for %s seconds"
-                    " they will expire at %s"
-                    % (diff.total_seconds(), exp))
+            pass
         # There are credentials for a current role and the role
         # that is attempting to be assumed is different
         elif (current_role is not None and
               args.assume_role and current_role != args.assume_role):
             logger.info(reup_message)
-            get_credentials(short_term_name, key_id, access_key, args, config)
+            force_refresh = True
         # There are credentials for a current role and no role arn is
         # being supplied
         elif current_role is not None and args.assume_role is None:
             logger.info(reup_message)
-            get_credentials(short_term_name, key_id, access_key, args, config)
+            force_refresh = True
+
+    should_refresh = True
+
+    # Unless we're forcing a refresh, check expiration.
+    if not force_refresh:
+        exp = datetime.datetime.strptime(
+            config.get(short_term_name, 'expiration'), '%Y-%m-%d %H:%M:%S')
+        diff = exp - datetime.datetime.utcnow()
+        if diff.total_seconds() <= 0:
+            logger.info("Your credentials have expired, renewing.")
         else:
-            exp = datetime.datetime.strptime(
-                config.get(short_term_name, 'expiration'), '%Y-%m-%d %H:%M:%S')
-            diff = exp - datetime.datetime.utcnow()
-            if diff.total_seconds() <= 0:
-                logger.info("Your credentials have expired, renewing.")
-                get_credentials(
-                    short_term_name, key_id, access_key, args, config)
-            else:
-                logger.info(
-                    "Your credentials are still valid for %s seconds"
-                    " they will expire at %s"
-                    % (diff.total_seconds(), exp))
+            should_refresh = False
+            logger.info(
+                "Your credentials are still valid for %s seconds"
+                " they will expire at %s"
+                % (diff.total_seconds(), exp))
+
+    if should_refresh:
+        get_credentials(short_term_name, key_id, access_key, args, config)
 
 
 def log_error_and_exit(message):
