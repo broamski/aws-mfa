@@ -114,6 +114,9 @@ def validate(args, config):
 
     if args.assume_role:
         role_msg = "with assumed role %s" % (args.assume_role,)
+    elif config.has_option(args.profile, 'assumed_role'):
+        role_msg = "with assumed role %s" % (
+            config.get(args.profile, 'assumed_role'))
     else:
         role_msg = ""
     logger.info('Validating credentials for profile: %s %s' %
