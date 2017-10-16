@@ -263,6 +263,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
 
     if args.assume_role:
 
+        logger.info("Assuming Role - Profile: %s, Role: %s, Duration: %s",
+                    short_term_name, args.assume_role, args.duration)
         if args.role_session_name is None:
             log_error_and_exit("You must specify a role session name "
                                "via --role-session-name")
@@ -286,6 +288,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             args.assume_role,
         )
     else:
+        logger.info("Fetching Credentials - Profile: %s, Duration: %s",
+                    short_term_name, args.duration)
         response = client.get_session_token(
             DurationSeconds=args.duration,
             SerialNumber=args.device,
