@@ -174,7 +174,7 @@ Usage
                             environment variable 'MFA_ASSUME_ROLE'
     --role-session-name ROLE_SESSION_NAME
                             Friendly session name required when using --assume-
-                            role
+                            role. By default, this is your local username.
 
 **Argument precedence**: Command line arguments take precedence over environment variables.
 
@@ -254,6 +254,19 @@ Assuming a role:
     INFO - Obtaining credentials for a new role or profile.
     Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
     INFO - Success! Your credentials will expire in 1800 seconds at: 2016-10-24 18:58:17+00:00
+
+Assuming a role: Assume a role specified in your `long-term` configuration
+
+.. code-block:: ini
+
+    [default-long-term]
+    aws_access_key_id = YOUR_LONGTERM_KEY_ID
+    aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+    assume_role =  arn:aws:iam::123456788990:role/some-role
+
+.. code-block:: sh
+
+    $> aws-mfa --duration 1800 --device arn:aws:iam::123456788990:mfa/dudeman --role-session-name some-role-session
 
 Assuming a role using a profile:
 

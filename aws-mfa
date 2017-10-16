@@ -8,6 +8,7 @@ except ImportError:
     import ConfigParser as configparser
     from ConfigParser import NoOptionError, NoSectionError
 import datetime
+import getpass
 import logging
 import os
 import sys
@@ -58,6 +59,7 @@ def main():
     parser.add_argument('--role-session-name',
                         help="Friendly session name required when using "
                         "--assume-role",
+                        default=getpass.getuser(),
                         required=False)
     parser.add_argument('--force',
                         help="Refresh credentials even if currently valid.",
@@ -145,6 +147,8 @@ def validate(args, config):
     if not args.assume_role:
         if os.environ.get('MFA_ASSUME_ROLE'):
             args.assume_role = os.environ.get('MFA_ASSUME_ROLE')
+        elif config.has_option(long_term_name, 'assume_role'):
+            args.assume_role = config.get(long_term_name, 'assume_role')
 
     # get duration from param, env var or set default
     if not args.duration:
