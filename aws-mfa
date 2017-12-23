@@ -174,11 +174,13 @@ def validate(args, config):
         logger.info("Short term credentials section %s is missing, "
                     "obtaining new credentials." % (short_term_name,))
         if short_term_name == 'default':
-            configparser.DEFAULTSECT = short_term_name
-            if sys.version_info.major == 3:
+            try:
                 config.add_section(short_term_name)
-            config.set(short_term_name, 'CREATE', 'TEST')
-            config.remove_option(short_term_name, 'CREATE')
+            # a hack for creating a section named "default"
+            except ValueError:
+                configparser.DEFAULTSECT = short_term_name
+                config.set(short_term_name, 'CREATE', 'TEST')
+                config.remove_option(short_term_name, 'CREATE')
         else:
             config.add_section(short_term_name)
         force_refresh = True
