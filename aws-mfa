@@ -86,9 +86,10 @@ def main():
     config = configparser.RawConfigParser()
     try:
         config.read(AWS_CREDS_PATH)
-    except configparser.ParsingError, e:
+    except configparser.ParsingError:
+        e = sys.exc_info()[1]
         log_error_and_exit("There was a problem reading or parsing "
-                           "your credentials file: %s" % (e,))
+                           "your credentials file: %s" % (e.args[0],))
 
     validate(args, config)
 
