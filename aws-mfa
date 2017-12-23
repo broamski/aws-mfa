@@ -84,7 +84,11 @@ def main():
     setup_logger(level)
 
     config = configparser.RawConfigParser()
-    config.read(AWS_CREDS_PATH)
+    try:
+        config.read(AWS_CREDS_PATH)
+    except configparser.ParsingError, e:
+        log_error_and_exit("There was a problem reading or parsing "
+                           "your credentials file: %s" % (e,))
 
     validate(args, config)
 
