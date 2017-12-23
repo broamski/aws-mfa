@@ -239,7 +239,9 @@ def validate(args, config):
                 % (diff.total_seconds(), exp))
 
     if should_refresh:
-        get_credentials(short_term_name, key_id, access_key, args, config)
+        get_credentials(
+            short_term_name, long_term_name, key_id, access_key, args, config
+        )
 
 
 def log_error_and_exit(message):
@@ -248,7 +250,9 @@ def log_error_and_exit(message):
     sys.exit(1)
 
 
-def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
+def get_credentials(
+    short_term_name, long_term_name, lt_key_id, lt_access_key, args, config
+):
     try:
         token_input = raw_input
     except NameError:
