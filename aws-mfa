@@ -266,6 +266,11 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
                             '(renewing for %s seconds):' %
                             (args.device, args.duration))
 
+    try:
+        del os.environ['AWS_PROFILE']
+    except:
+        pass
+
     client = boto3.client(
         'sts',
         aws_access_key_id=lt_key_id,
