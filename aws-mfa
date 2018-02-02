@@ -147,8 +147,14 @@ def validate(args, config):
         try:
             aws_creds = {
                 "key_id": config.get(short_term_name, 'aws_access_key_id'),
-                "access_key": config.get(short_term_name, 'aws_secret_access_key'),
-                "session_token": config.get(short_term_name, 'aws_session_token')
+                "access_key": config.get(
+                    short_term_name,
+                    'aws_secret_access_key'
+                ),
+                "session_token": config.get(
+                    short_term_name,
+                    'aws_session_token'
+                )
             }
 
         except NoSectionError:
@@ -156,14 +162,21 @@ def validate(args, config):
                 "Long term credentials session '[%s]' is missing. "
                 "You must add this section to your credentials file "
                 "along with your long term 'aws_access_key_id', "
-                "'aws_secret_access_key' and 'aws_session_token'" % (long_term_name,))
+                "'aws_secret_access_key' and "
+                "'aws_session_token'" % (long_term_name,))
         except NoOptionError as e:
             log_error_and_exit(e)
     else:
         try:
             aws_creds = {
-                "key_id": config.get(long_term_name, 'aws_access_key_id'),
-                "access_key": config.get(long_term_name, 'aws_secret_access_key')
+                "key_id": config.get(
+                    long_term_name,
+                    'aws_access_key_id'
+                ),
+                "access_key": config.get(
+                    long_term_name,
+                    'aws_secret_access_key'
+                )
             }
         except NoSectionError:
             log_error_and_exit(
