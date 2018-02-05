@@ -62,6 +62,12 @@ def main():
                         "--assume-role",
                         default=getpass.getuser(),
                         required=False)
+    parser.add_argument('--no-mfa-prompt',
+                        help="If you've already created short-term "
+                        "credentials and don't want to be prompted for "
+                        "your MFA token when assuming a role, use this flag. "
+                        "Used with --assume-role",
+                        required=False)
     parser.add_argument('--force',
                         help="Refresh credentials even if currently valid.",
                         action="store_true",
@@ -130,8 +136,15 @@ def validate(args, config):
     reup_message = "Obtaining credentials for a new role or profile."
 
     try:
-        key_id = config.get(long_term_name, 'aws_access_key_id')
-        access_key = config.get(long_term_name, 'aws_secret_access_key')
+        aws_creds = {
+            "aws_access_key_id": config.get(
+                long_term_name, 'aws_access_key_id'),
+            "aws_secret_access_key": config.get(
+                long_term_name, 'aws_secret_access_key')
+        }
+        if args.no_mfa_prompt:
+            aws_creds['aws_session_token'] = config.get(
+                long_term_name, 'aws_session_token')
     except NoSectionError:
         log_error_and_exit(
             "Long term credentials session '[%s]' is missing. "
@@ -247,7 +260,7 @@ def validate(args, config):
                 % (diff.total_seconds(), exp))
 
     if should_refresh:
-        get_credentials(short_term_name, key_id, access_key, args, config)
+        get_credentials(short_term_name, aws_creds, args, config)
 
 
 def log_error_and_exit(message):
@@ -256,21 +269,22 @@ def log_error_and_exit(message):
     sys.exit(1)
 
 
-def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
+def get_credentials(short_term_name, aws_creds, args, config):
     try:
         token_input = raw_input
     except NameError:
         token_input = input
 
-    mfa_token = token_input('Enter AWS MFA code for device [%s] '
-                            '(renewing for %s seconds):' %
-                            (args.device, args.duration))
+    if not args.no_mfa_prompt:
+        mfa_token = token_input('Enter AWS MFA code for device [%s] '
+                                '(renewing for %s seconds):' %
+                                (args.device, args.duration))
 
-    client = boto3.client(
-        'sts',
-        aws_access_key_id=lt_key_id,
-        aws_secret_access_key=lt_access_key
-    )
+        client = boto3.client(
+            'sts',
+            aws_access_key_id=aws_creds['aws_access_key_id'],
+            aws_secret_access_key=aws_creds['aws_secret_access_key']
+        )
 
     if args.assume_role:
 
@@ -279,14 +293,26 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         if args.role_session_name is None:
             log_error_and_exit("You must specify a role session name "
                                "via --role-session-name")
-
-        response = client.assume_role(
-            RoleArn=args.assume_role,
-            RoleSessionName=args.role_session_name,
-            DurationSeconds=args.duration,
-            SerialNumber=args.device,
-            TokenCode=mfa_token
-        )
+        if args.no_mfa_prompt:
+            client = boto3.client(
+                'sts',
+                aws_access_key_id=aws_creds['aws_access_key_id'],
+                aws_secret_access_key=aws_creds['aws_secret_access_key'],
+                aws_session_token=aws_creds['aws_session_token']
+            )
+            response = client.assume_role(
+                RoleArn=args.assume_role,
+                RoleSessionName=args.role_session_name,
+                DurationSeconds=args.duration
+            )
+        else:
+            response = client.assume_role(
+                RoleArn=args.assume_role,
+                RoleSessionName=args.role_session_name,
+                DurationSeconds=args.duration,
+                SerialNumber=args.device,
+                TokenCode=mfa_token
+            )
 
         config.set(
             short_term_name,
