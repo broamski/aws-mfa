@@ -175,18 +175,11 @@ Usage
     --role-session-name ROLE_SESSION_NAME
                             Friendly session name required when using --assume-
                             role. By default, this is your local username.
-    --use-short-term-credentials USE_SHORT_TERM_CREDENTIALS
-                            If you already have a short term profile set with a
-                            session token and that user doesn't require MFA to
-                            assume the role, use the short-term credentials
-                            without needing to enter a token. used with --assume-
-                            role
-    --role-profile-name ROLE_PROFILE_NAME
-                            Set a custom profile name when using --use-short-term-
-                            credentials and --assume-role so that the short-term
-                            profile with temporary credentials isn't overwritten.
-                            Will identify a new short term credential section by
-                            [<profile_name>-ROLE_PROFILE_NAME]
+    --no-mfa-prompt NO_MFA_PROMPT
+                            If you've already created short-term
+                            credentials and don't want to be prompted for
+                            your MFA token when assuming a role, use this flag.
+                            Used with --assume-role
 
 **Argument precedence**: Command line arguments take precedence over environment variables.
 
@@ -310,11 +303,19 @@ Assuming a role in multiple accounts and be able to work with both accounts simu
 
     $> aws s3 list-objects —bucket my-staging-bucket —profile myorganization-staging
 
-Assuming you've already authenticated with MFA as an IAM user, and want to use those short term credentials without MFA device when assuming roles
+If a profile with short-term credentials has the permissions to assume a role _without_ entering an MFA token, you can add the `--no-mfa-prompt` flag to not prompt you for the MFA token.
 
 .. code-block:: sh
-    aws-mfa --device arn:aws:iam::123456788990:mfa/dudeman --profile development --assume-role arn:aws:iam::98765432110:role/MyRoleInAnotherAccount --role-session-name some-role --use-short-term-credentials True --role-profile-name my-role
-    INFO - Validating credentials for profile: development with assumed role: arn:aws:iam::98765432110:role/MyRoleInAnotherAccount
-    INFO - Short term credentials section development-my-role is missing, obtaining new credentials.
-    INFO - Assuming Role - Profile: development-my-role, Role: arn:aws:iam::98765432110:role/MyRoleInAnotherAccount, Duration: 3600
-    INFO - Success! Your credentials will expire in 3600 seconds at: 2018-02-02 21:31:16+00:00
+
+    $> aws-mfa --profile myorganization --device arn:aws:iam::123456788990:mfa/dudeman
+    INFO - Validating credentials for profile: myorganization
+    INFO - Short term credentials section myorganization is missing, obtaining new credentials.
+    Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 43200 seconds):953051
+    INFO - Fetching Credentials - Profile: myorganization, Duration: 43200
+    INFO - Success! Your credentials will expire in 43200 seconds at: 2018-02-06 03:54:40+00:00
+
+    $> aws-mfa --profile myorganization --long-term-suffix none --short-term-suffix audit-role --assume-role arn:aws:iam::222222222222:role/AuditRole --role-session-name some-session --no-mfa-prompt True
+    INFO - Validating credentials for profile: myorganization-audit-role with assumed role: arn:aws:iam::222222222222:role/AuditRole
+    INFO - Short term credentials section myorganization-audit-role is missing, obtaining new credentials.
+    INFO - Assuming Role - Profile: myorganization-audit-role, Role: arn:aws:iam::222222222222:role/AuditRole, Duration: 3600
+    INFO - Success! Your credentials will expire in 3600 seconds at: 2018-02-05 16:55:54+00:00
