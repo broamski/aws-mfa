@@ -14,7 +14,8 @@ import os
 import sys
 import boto3
 
-logging.basicConfig()
+from botocore.exceptions import ClientError, ParamValidationError
+
 logger = logging.getLogger('aws-mfa')
 
 AWS_CREDS_PATH = '%s/.aws/credentials' % (os.path.expanduser('~'),)
@@ -280,13 +281,19 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             log_error_and_exit("You must specify a role session name "
                                "via --role-session-name")
 
-        response = client.assume_role(
-            RoleArn=args.assume_role,
-            RoleSessionName=args.role_session_name,
-            DurationSeconds=args.duration,
-            SerialNumber=args.device,
-            TokenCode=mfa_token
-        )
+        try:
+            response = client.assume_role(
+                RoleArn=args.assume_role,
+                RoleSessionName=args.role_session_name,
+                DurationSeconds=args.duration,
+                SerialNumber=args.device,
+                TokenCode=mfa_token
+            )
+        except ClientError as e:
+            log_error_and_exit(
+                "An error occured while calling assume role: {}".format(e))
+        except ParamValidationError:
+            log_error_and_exit("Token must be six digits")
 
         config.set(
             short_term_name,
@@ -301,11 +308,17 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     else:
         logger.info("Fetching Credentials - Profile: %s, Duration: %s",
                     short_term_name, args.duration)
-        response = client.get_session_token(
-            DurationSeconds=args.duration,
-            SerialNumber=args.device,
-            TokenCode=mfa_token
-        )
+        try:
+            response = client.get_session_token(
+                DurationSeconds=args.duration,
+                SerialNumber=args.device,
+                TokenCode=mfa_token
+            )
+        except ClientError as e:
+            log_error_and_exit(
+                "An error occured while calling assume role: {}".format(e))
+        except ParamValidationError:
+            log_error_and_exit("Token must be six digits")
 
         config.set(
             short_term_name,
