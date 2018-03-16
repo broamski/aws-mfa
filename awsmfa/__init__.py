@@ -13,6 +13,8 @@ import sys
 import boto3
 
 from botocore.exceptions import ClientError, ParamValidationError
+from config import initial_setup
+from util import log_error_and_exit, prompter
 
 logger = logging.getLogger('aws-mfa')
 
@@ -42,15 +44,15 @@ def main():
                         "also be provided via the environment variable "
                         "'AWS_PROFILE'.",
                         required=False)
-    parser.add_argument('--long-term-suffix',
+    parser.add_argument('--long-term-suffix', '--long-suffix',
                         help="The suffix appended to the profile name to"
                         "identify the long term credential section",
                         required=False)
-    parser.add_argument('--short-term-suffix',
+    parser.add_argument('--short-term-suffix', '--short-suffix',
                         help="The suffix appended to the profile name to"
                         "identify the short term credential section",
                         required=False)
-    parser.add_argument('--assume-role',
+    parser.add_argument('--assume-role', '--assume',
                         metavar='arn:aws:iam::123456788990:role/RoleName',
                         help="The ARN of the AWS IAM Role you would like to "
                         "assume, if specified. This value can also be provided"
@@ -73,16 +75,33 @@ def main():
                         ],
                         required=False,
                         default='DEBUG')
+    parser.add_argument('--setup',
+                        help="Setup a new log term credentials section",
+                        action="store_true",
+                        required=False)
     args = parser.parse_args()
-
-    if not os.path.isfile(AWS_CREDS_PATH):
-        log_error_and_exit('Could not locate credentials file at '
-                           '%s' % (AWS_CREDS_PATH,))
 
     level = getattr(logging, args.log_level)
     setup_logger(level)
 
+    if not os.path.isfile(AWS_CREDS_PATH):
+        console_input = prompter()
+        create = console_input("Could not locate credentials file at {}, "
+                               "would you like to create one? "
+                               "[y/n]".format(AWS_CREDS_PATH))
+        if create.lower() == "y":
+            with open(AWS_CREDS_PATH, 'a'):
+                pass
+        else:
+            log_error_and_exit(logger, 'Could not locate credentials file at '
+                               '%s' % (AWS_CREDS_PATH,))
+
     config = get_config(AWS_CREDS_PATH)
+
+    if args.setup:
+        initial_setup(logger, config, AWS_CREDS_PATH)
+        return
+
     validate(args, config)
 
 
@@ -92,7 +111,7 @@ def get_config(aws_creds_path):
         config.read(aws_creds_path)
     except configparser.ParsingError:
         e = sys.exc_info()[1]
-        log_error_and_exit("There was a problem reading or parsing "
+        log_error_and_exit(logger, "There was a problem reading or parsing "
                            "your credentials file: %s" % (e.args[0],))
     return config
 
@@ -117,9 +136,9 @@ def validate(args, config):
         short_term_name = '%s-%s' % (args.profile, args.short_term_suffix)
 
     if long_term_name == short_term_name:
-        log_error_and_exit(
-            "The value for '--long-term-suffix' cannot "
-            "be equal to the value for '--short-term-suffix'")
+        log_error_and_exit(logger,
+                           "The value for '--long-term-suffix' cannot "
+                           "be equal to the value for '--short-term-suffix'")
 
     if args.assume_role:
         role_msg = "with assumed role: %s" % (args.assume_role,)
@@ -136,13 +155,13 @@ def validate(args, config):
         key_id = config.get(long_term_name, 'aws_access_key_id')
         access_key = config.get(long_term_name, 'aws_secret_access_key')
     except NoSectionError:
-        log_error_and_exit(
-            "Long term credentials session '[%s]' is missing. "
-            "You must add this section to your credentials file "
-            "along with your long term 'aws_access_key_id' and "
-            "'aws_secret_access_key'" % (long_term_name,))
+        log_error_and_exit(logger,
+                           "Long term credentials session '[%s]' is missing. "
+                           "You must add this section to your credentials file "
+                           "along with your long term 'aws_access_key_id' and "
+                           "'aws_secret_access_key'" % (long_term_name,))
     except NoOptionError as e:
-        log_error_and_exit(e)
+        log_error_and_exit(logger, e)
 
     # get device from param, env var or config
     if not args.device:
@@ -151,9 +170,9 @@ def validate(args, config):
         elif config.has_option(long_term_name, 'aws_mfa_device'):
             args.device = config.get(long_term_name, 'aws_mfa_device')
         else:
-            log_error_and_exit(
-                'You must provide --device or MFA_DEVICE or set '
-                '"aws_mfa_device" in ".aws/credentials"')
+            log_error_and_exit(logger,
+                               'You must provide --device or MFA_DEVICE or set '
+                               '"aws_mfa_device" in ".aws/credentials"')
 
     # get assume_role from param or env var
     if not args.assume_role:
@@ -253,21 +272,11 @@ def validate(args, config):
         get_credentials(short_term_name, key_id, access_key, args, config)
 
 
-def log_error_and_exit(message):
-    """Log an error message and exit with error"""
-    logger.error(message)
-    sys.exit(1)
-
-
 def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
-    try:
-        token_input = raw_input
-    except NameError:
-        token_input = input
-
-    mfa_token = token_input('Enter AWS MFA code for device [%s] '
-                            '(renewing for %s seconds):' %
-                            (args.device, args.duration))
+    console_input = prompter()
+    mfa_token = console_input('Enter AWS MFA code for device [%s] '
+                              '(renewing for %s seconds):' %
+                              (args.device, args.duration))
 
     client = boto3.client(
         'sts',
@@ -280,7 +289,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         logger.info("Assuming Role - Profile: %s, Role: %s, Duration: %s",
                     short_term_name, args.assume_role, args.duration)
         if args.role_session_name is None:
-            log_error_and_exit("You must specify a role session name "
+            log_error_and_exit(logger, "You must specify a role session name "
                                "via --role-session-name")
 
         try:
@@ -292,10 +301,11 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
                 TokenCode=mfa_token
             )
         except ClientError as e:
-            log_error_and_exit(
-                "An error occured while calling assume role: {}".format(e))
+            log_error_and_exit(logger,
+                               "An error occured while calling "
+                               "assume role: {}".format(e))
         except ParamValidationError:
-            log_error_and_exit("Token must be six digits")
+            log_error_and_exit(logger, "Token must be six digits")
 
         config.set(
             short_term_name,
@@ -318,9 +328,12 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             )
         except ClientError as e:
             log_error_and_exit(
+                logger,
                 "An error occured while calling assume role: {}".format(e))
         except ParamValidationError:
-            log_error_and_exit("Token must be six digits")
+            log_error_and_exit(
+                logger,
+                "Token must be six digits")
 
         config.set(
             short_term_name,
