@@ -79,6 +79,9 @@ def main():
                         help="Setup a new log term credentials section",
                         action="store_true",
                         required=False)
+    parser.add_argument('--token',
+                        help="Provide token as an argument",
+                        required=False)
     args = parser.parse_args()
 
     level = getattr(logging, args.log_level)
@@ -273,10 +276,14 @@ def validate(args, config):
 
 
 def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
-    console_input = prompter()
-    mfa_token = console_input('Enter AWS MFA code for device [%s] '
-                              '(renewing for %s seconds):' %
-                              (args.device, args.duration))
+    if args.token:
+        logger.debug("Received token as argument")
+        mfa_token = '%s' % (args.token)
+    else:
+        console_input = prompter()
+        mfa_token = console_input('Enter AWS MFA code for device [%s] '
+                                '(renewing for %s seconds):' %
+                                (args.device, args.duration))
 
     client = boto3.client(
         'sts',
