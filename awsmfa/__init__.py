@@ -80,6 +80,7 @@ def main():
                         action="store_true",
                         required=False)
     parser.add_argument('--token',
+                        type=str,
                         help="Provide token as an argument",
                         required=False)
     args = parser.parse_args()
