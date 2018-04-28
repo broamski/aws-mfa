@@ -1,4 +1,6 @@
 from setuptools import setup
+
+from codecs import open
 from os import path
 
 here = path.abspath(path.dirname(__file__))
@@ -7,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='aws-mfa',
-    version='0.0.10',
+    version='0.0.11',
     description='Manage AWS MFA Security Credentials',
     long_description=long_description,
     long_description_content_type='text/markdown',
