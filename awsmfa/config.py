@@ -4,10 +4,10 @@ try:
     import configparser
     from configparser import NoOptionError, NoSectionError
 except ImportError:
-    import ConfigParser as configparser # noqa
-    from ConfigParser import NoOptionError, NoSectionError # noqa
+    import ConfigParser as configparser  # noqa
+    from ConfigParser import NoOptionError, NoSectionError  # noqa
 
-from util import log_error_and_exit, prompter
+from awsmfa.util import log_error_and_exit, prompter
 
 
 def initial_setup(logger, config, config_path):

@@ -13,8 +13,8 @@ import sys
 import boto3
 
 from botocore.exceptions import ClientError, ParamValidationError
-from config import initial_setup
-from util import log_error_and_exit, prompter
+from awsmfa.config import initial_setup
+from awsmfa.util import log_error_and_exit, prompter
 
 logger = logging.getLogger('aws-mfa')
 
