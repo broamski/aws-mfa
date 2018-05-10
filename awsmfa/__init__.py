@@ -79,7 +79,7 @@ def main():
                         help="Setup a new log term credentials section",
                         action="store_true",
                         required=False)
-    parser.add_argument('--token', '--mfa-token'
+    parser.add_argument('--token', '--mfa-token',
                         type=str,
                         help="Provide MFA token as an argument",
                         required=False)
