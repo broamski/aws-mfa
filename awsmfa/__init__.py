@@ -283,8 +283,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     else:
         console_input = prompter()
         mfa_token = console_input('Enter AWS MFA code for device [%s] '
-                                '(renewing for %s seconds):' %
-                                (args.device, args.duration))
+                                  '(renewing for %s seconds):' %
+                                  (args.device, args.duration))
 
     client = boto3.client(
         'sts',
