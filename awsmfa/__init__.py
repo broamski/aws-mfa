@@ -18,8 +18,6 @@ from awsmfa.util import log_error_and_exit, prompter
 
 logger = logging.getLogger('aws-mfa')
 
-AWS_CREDS_PATH = '%s/.aws/credentials' % (os.path.expanduser('~'),)
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -38,6 +36,10 @@ def main():
                              "hour) when using '--assume-role'. This value "
                              "can also be provided via the environment "
                              "variable 'MFA_STS_DURATION'. ")
+    parser.add_argument('--creds-file',
+                        help="File path location of the AWS credentials file.",
+                        default='%s/.aws/credentials' % (os.path.expanduser('~'),),
+                        required=False)
     parser.add_argument('--profile',
                         help="If using profiles, specify the name here. The "
                         "default profile name is 'default'. The value can "
@@ -88,22 +90,22 @@ def main():
     level = getattr(logging, args.log_level)
     setup_logger(level)
 
-    if not os.path.isfile(AWS_CREDS_PATH):
+    if not os.path.isfile(args.creds_file):
         console_input = prompter()
         create = console_input("Could not locate credentials file at {}, "
                                "would you like to create one? "
-                               "[y/n]".format(AWS_CREDS_PATH))
+                               "[y/n]".format(args.creds_file))
         if create.lower() == "y":
-            with open(AWS_CREDS_PATH, 'a'):
+            with open(args.creds_file, 'a'):
                 pass
         else:
             log_error_and_exit(logger, 'Could not locate credentials file at '
-                               '%s' % (AWS_CREDS_PATH,))
+                               '%s' % (args.creds_file,))
 
-    config = get_config(AWS_CREDS_PATH)
+    config = get_config(args.creds_file)
 
     if args.setup:
-        initial_setup(logger, config, AWS_CREDS_PATH)
+        initial_setup(logger, config, args.creds_file)
         return
 
     validate(args, config)
@@ -371,7 +373,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         'expiration',
         response['Credentials']['Expiration'].strftime('%Y-%m-%d %H:%M:%S')
     )
-    with open(AWS_CREDS_PATH, 'w') as configfile:
+    with open(args.creds_file, 'w') as configfile:
         config.write(configfile)
     logger.info(
         "Success! Your credentials will expire in %s seconds at: %s"
