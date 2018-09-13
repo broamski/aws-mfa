@@ -10,6 +10,6 @@ RUN apk add --update --no-cache make \
   libffi-dev \
   openssl-dev
 
-RUN pip install aws-mfa
+RUN pip install aws-mfa-spok
 
-ENTRYPOINT ["aws-mfa"]
+ENTRYPOINT ["aws-mfa-spok"]

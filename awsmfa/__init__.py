@@ -16,7 +16,7 @@ from botocore.exceptions import ClientError, ParamValidationError
 from awsmfa.config import initial_setup
 from awsmfa.util import log_error_and_exit, prompter
 
-logger = logging.getLogger('aws-mfa')
+logger = logging.getLogger('aws-mfa-spok')
 
 
 def main():
