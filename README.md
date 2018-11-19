@@ -33,6 +33,7 @@ In a typical AWS credentials file (located at `~/.aws/credentials`), credentials
 
 By default long term credential sections are identified by the convention `[<profile_name>-long-term]` and short term credentials are identified by the typical convention: `[<profile_name>]`. The following illustrates how you would configure you credentials file using **aws-mfa** with your default credentials:
 
+
 ```ini
 [default-long-term]
 aws_access_key_id = YOUR_LONGTERM_KEY_ID
@@ -74,6 +75,22 @@ aws_access_key_id = <POPULATED_BY_AWS-MFA>
 aws_secret_access_key = <POPULATED_BY_AWS-MFA>
 aws_security_token = <POPULATED_BY_AWS-MFA>
 ```
+
+Proxy set up
+--------------------------
+
+In proxies section, you can set up the proxy you want to 
+```ini
+[proxies]
+http=http.proxy.com:8080
+https=https.proxy.com:3128
+```
+or you can use the --proxies argument with dictionary data of proxy like:
+
+```
+{http: 'http.proxy.com:8080'}
+```
+
 
 The default naming convention for the credential section can be overriden by using the `--long-term-suffix` and
 `--short-term-suffix` command line arguments. For example, in a multi account scenario you can have one AWS account
