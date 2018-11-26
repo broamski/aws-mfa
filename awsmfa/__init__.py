@@ -148,8 +148,10 @@ def validate(args, config):
                            "The value for '--long-term-suffix' cannot "
                            "be equal to the value for '--short-term-suffix'")
 
-    if args.proxies or config.items('proxies'):
-        args.real_proxies= merge_dict(args.proxies, dict(config.items('proxies')))
+    if args.proxies or 'proxies' in config.sections():
+        args.real_proxies = merge_dict(args.proxies, dict(config.items('proxies')))
+    else:
+        args.real_proxies= None
 
     if args.assume_role:
         role_msg = "with assumed role: %s" % (args.assume_role,)
