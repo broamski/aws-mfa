@@ -11,10 +11,11 @@ import logging
 import os
 import sys
 import boto3
+from botocore.config import Config
 
 from botocore.exceptions import ClientError, ParamValidationError
 from awsmfa.config import initial_setup
-from awsmfa.util import log_error_and_exit, prompter
+from awsmfa.util import log_error_and_exit, prompter, merge_dict
 
 logger = logging.getLogger('aws-mfa')
 
@@ -83,6 +84,10 @@ def main():
                         type=str,
                         help="Provide MFA token as an argument",
                         required=False)
+    parser.add_argument('--proxies',
+                        type=dict,
+                        help="Setup proxy for aws client, using dict format like {'http':'foo.bar:3128'}",
+                        required=False)
     args = parser.parse_args()
 
     level = getattr(logging, args.log_level)
@@ -99,7 +104,6 @@ def main():
         else:
             log_error_and_exit(logger, 'Could not locate credentials file at '
                                '%s' % (AWS_CREDS_PATH,))
-
     config = get_config(AWS_CREDS_PATH)
 
     if args.setup:
@@ -143,6 +147,11 @@ def validate(args, config):
         log_error_and_exit(logger,
                            "The value for '--long-term-suffix' cannot "
                            "be equal to the value for '--short-term-suffix'")
+
+    if args.proxies or 'proxies' in config.sections():
+        args.real_proxies = merge_dict(args.proxies, dict(config.items('proxies')))
+    else:
+        args.real_proxies= None
 
     if args.assume_role:
         role_msg = "with assumed role: %s" % (args.assume_role,)
@@ -285,12 +294,19 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         mfa_token = console_input('Enter AWS MFA code for device [%s] '
                                   '(renewing for %s seconds):' %
                                   (args.device, args.duration))
-
-    client = boto3.client(
-        'sts',
-        aws_access_key_id=lt_key_id,
-        aws_secret_access_key=lt_access_key
-    )
+    if args.real_proxies:
+        client = boto3.client(
+            'sts',
+            aws_access_key_id=lt_key_id,
+            aws_secret_access_key=lt_access_key,
+            config=Config(proxies=args.real_proxies)
+        )
+    else:
+        client = boto3.client(
+            'sts',
+            aws_access_key_id=lt_key_id,
+            aws_secret_access_key=lt_access_key
+        )
 
     if args.assume_role:
 
