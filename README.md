@@ -271,13 +271,13 @@ INFO - Success! Your credentials will expire in 1800 seconds at: 2016-10-24 18:5
 Assuming a role in multiple accounts and be able to work with both accounts simultaneously (i.e. production an staging):
 
 ```sh
-$> aws-mfa —profile myorganization --assume-role arn:aws:iam::222222222222:role/Administrator --short-term-suffix production --long-term-suffix none --role-session-name production
+$> aws-mfa --profile myorganization --assume-role arn:aws:iam::222222222222:role/Administrator --short-term-suffix production --long-term-suffix none --role-session-name production
 INFO - Validating credentials for profile: myorganization-production with assumed role arn:aws:iam::222222222222:role/Administrator
 INFO - Your credentials have expired, renewing.
 Enter AWS MFA code for device [arn:aws:iam::111111111111:mfa/me] (renewing for 3600 seconds):123456
 INFO - Success! Your credentials will expire in 3600 seconds at: 2017-07-10 07:16:43+00:00
 
-$> aws-mfa —profile myorganization --assume-role arn:aws:iam::333333333333:role/Administrator --short-term-suffix staging --long-term-suffix none --role-session-name staging 
+$> aws-mfa --profile myorganization --assume-role arn:aws:iam::333333333333:role/Administrator --short-term-suffix staging --long-term-suffix none --role-session-name staging 
 INFO - Validating credentials for profile: myorganization-staging with assumed role arn:aws:iam::333333333333:role/Administrator
 INFO - Your credentials have expired, renewing.
 Enter AWS MFA code for device [arn:aws:iam::111111111111:mfa/me] (renewing for 3600 seconds):123456
