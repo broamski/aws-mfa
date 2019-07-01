@@ -272,6 +272,8 @@ def validate(args, config):
                 " they will expire at %s"
                 % (diff.total_seconds(), exp))
 
+            warn_on_existing_aws_env()
+
     if should_refresh:
         get_credentials(short_term_name, key_id, access_key, args, config)
 
@@ -376,7 +378,20 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     logger.info(
         "Success! Your credentials will expire in %s seconds at: %s"
         % (args.duration, response['Credentials']['Expiration']))
+
+    warn_on_existing_aws_env()
+
     sys.exit(0)
+
+
+def warn_on_existing_aws_env():
+    # https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#config-settings-and-precedence
+    aws_keys = list(filter(lambda k: k in os.environ,
+                           ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN']))
+    if aws_keys:
+        logger.warning('Your env already has AWS access keys set %s, which take precedence in the AWS CLI and SDKs '
+                       'over the credentials written by this utility. Consider `unset`-ting them if you have issues.'
+                       % aws_keys)
 
 
 def setup_logger(level=logging.DEBUG):
