@@ -76,7 +76,7 @@ def main():
                         required=False,
                         default='DEBUG')
     parser.add_argument('--setup',
-                        help="Setup a new log term credentials section",
+                        help="Setup a new long term credentials section",
                         action="store_true",
                         required=False)
     parser.add_argument('--token', '--mfa-token',
