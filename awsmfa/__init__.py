@@ -58,6 +58,11 @@ def main():
                         "assume, if specified. This value can also be provided"
                         " via the environment variable 'MFA_ASSUME_ROLE'",
                         required=False)
+    parser.add_argument('--external-id',
+                        metavar='EXTERNAL_ID',
+                        help="A unique identifier that might be required when "
+                        "you assume a role in another account.",
+                        required=False)
     parser.add_argument('--role-session-name',
                         help="Friendly session name required when using "
                         "--assume-role",
@@ -306,7 +311,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
                 RoleSessionName=args.role_session_name,
                 DurationSeconds=args.duration,
                 SerialNumber=args.device,
-                TokenCode=mfa_token
+                TokenCode=mfa_token,
+                ExternalId=args.external_id
             )
         except ClientError as e:
             log_error_and_exit(logger,
