@@ -82,7 +82,9 @@ def main():
     parser.add_argument('--token', '--mfa-token',
                         type=str,
                         help="Provide MFA token as an argument",
-                        required=False)
+                        required=False,
+                        default=None)
+    parser.add_argument('--region', help="The region of AWS STS", required=False, type=str)
     args = parser.parse_args()
 
     level = getattr(logging, args.log_level)
@@ -286,10 +288,17 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
                                   '(renewing for %s seconds):' %
                                   (args.device, args.duration))
 
+    sts_enpoint_url = None
+
+    if args.region:
+        sts_enpoint_url = "https://sts.%s.amazonaws.com" % args.region
+
     client = boto3.client(
         'sts',
         aws_access_key_id=lt_key_id,
-        aws_secret_access_key=lt_access_key
+        aws_secret_access_key=lt_access_key,
+        region_name=args.region,
+        endpoint_url=sts_enpoint_url
     )
 
     if args.assume_role:
