@@ -48,6 +48,9 @@ def main():
                         help="The suffix appended to the profile name to"
                         "identify the long term credential section",
                         required=False)
+    parser.add_argument('--from-profile', 
+                        help="The profile to assume the role from",
+                        required=False)
     parser.add_argument('--short-term-suffix', '--short-suffix',
                         help="The suffix appended to the profile name to"
                         "identify the short term credential section",
@@ -126,13 +129,17 @@ def validate(args, config):
             args.profile = os.environ.get('AWS_PROFILE')
         else:
             args.profile = 'default'
-
-    if not args.long_term_suffix:
-        long_term_name = '%s-long-term' % (args.profile,)
-    elif args.long_term_suffix.lower() == 'none':
-        long_term_name = args.profile
+    aws_security_token = None
+    if args.from_profile:
+        long_term_name = args.from_profile
+        aws_security_token = config.get(long_term_name, 'aws_security_token')
     else:
-        long_term_name = '%s-%s' % (args.profile, args.long_term_suffix)
+        if not args.long_term_suffix:
+            long_term_name = '%s-long-term' % (args.profile,)
+        elif args.long_term_suffix.lower() == 'none':
+            long_term_name = args.profile
+        else:
+            long_term_name = '%s-%s' % (args.profile, args.long_term_suffix)
 
     if not args.short_term_suffix or args.short_term_suffix.lower() == 'none':
         short_term_name = args.profile
@@ -158,6 +165,7 @@ def validate(args, config):
     try:
         key_id = config.get(long_term_name, 'aws_access_key_id')
         access_key = config.get(long_term_name, 'aws_secret_access_key')
+
     except NoSectionError:
         log_error_and_exit(logger,
                            "Long term credentials session '[%s]' is missing. "
@@ -174,9 +182,8 @@ def validate(args, config):
         elif config.has_option(long_term_name, 'aws_mfa_device'):
             args.device = config.get(long_term_name, 'aws_mfa_device')
         else:
-            log_error_and_exit(logger,
-                               'You must provide --device or MFA_DEVICE or set '
-                               '"aws_mfa_device" in ".aws/credentials"')
+            logger.info('not using a mfa device')
+
 
     # get assume_role from param or env var
     if not args.assume_role:
@@ -273,23 +280,27 @@ def validate(args, config):
                 % (diff.total_seconds(), exp))
 
     if should_refresh:
-        get_credentials(short_term_name, key_id, access_key, args, config)
+        get_credentials(short_term_name, key_id, access_key, args, config, aws_security_token)
 
 
-def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
+def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config, aws_security_token):
+    mfa_token = None
     if args.token:
         logger.debug("Received token as argument")
         mfa_token = '%s' % (args.token)
     else:
-        console_input = prompter()
-        mfa_token = console_input('Enter AWS MFA code for device [%s] '
-                                  '(renewing for %s seconds):' %
-                                  (args.device, args.duration))
+        if args.device:
+            console_input = prompter()
+            mfa_token = console_input('Enter AWS MFA code for device [%s] '
+                                      '(renewing for %s seconds):' %
+                                      (args.device, args.duration))
 
+    print(lt_key_id, lt_access_key)
     client = boto3.client(
         'sts',
         aws_access_key_id=lt_key_id,
-        aws_secret_access_key=lt_access_key
+        aws_secret_access_key=lt_access_key,
+        aws_session_token=aws_security_token
     )
 
     if args.assume_role:
@@ -301,13 +312,23 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
                                "via --role-session-name")
 
         try:
-            response = client.assume_role(
+            if mfa_token:
+                response = client.assume_role(
+                    RoleArn=args.assume_role,
+                    RoleSessionName=args.role_session_name,
+                    DurationSeconds=args.duration,
+                    SerialNumber=args.device,
+                    TokenCode=mfa_token
+                )
+            else:
+                print(args.assume_role,args.role_session_name,args.duration)
+
+                response = client.assume_role(
                 RoleArn=args.assume_role,
                 RoleSessionName=args.role_session_name,
-                DurationSeconds=args.duration,
-                SerialNumber=args.device,
-                TokenCode=mfa_token
+                DurationSeconds=args.duration
             )
+
         except ClientError as e:
             log_error_and_exit(logger,
                                "An error occured while calling "
@@ -329,11 +350,15 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         logger.info("Fetching Credentials - Profile: %s, Duration: %s",
                     short_term_name, args.duration)
         try:
-            response = client.get_session_token(
-                DurationSeconds=args.duration,
-                SerialNumber=args.device,
-                TokenCode=mfa_token
-            )
+            if mfa_token:
+                response = client.get_session_token(
+                    DurationSeconds=args.duration,
+                    SerialNumber=args.device,
+                    TokenCode=mfa_token
+                )
+            else :
+                log_error_and_exit(logger, "Cannot get a session token without a device")
+
         except ClientError as e:
             log_error_and_exit(
                 logger,
