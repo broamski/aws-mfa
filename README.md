@@ -17,7 +17,7 @@ Installation:
 -------------
 Option 1
 ```sh
-$ pip install aws-mfa
+$ pip install git+https://github.com/jdnrg/aws-mfa.git#egg=aws-mfa
 ```
 
 Option 2
