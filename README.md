@@ -17,7 +17,7 @@ Installation:
 -------------
 Option 1
 ```sh
-$ pip install aws-mfa
+$ pip install git+https://github.com/jdnrg/aws-mfa.git#egg=aws-mfa
 ```
 
 Option 2
@@ -167,6 +167,8 @@ Usage
 --role-session-name ROLE_SESSION_NAME
                         Friendly session name required when using --assume-
                         role. By default, this is your local username.
+--from-profile 
+                        The profile to use to switch from a second time, does not need mfa.
 ```
 
 **Argument precedence**: Command line arguments take precedence over environment variables.
