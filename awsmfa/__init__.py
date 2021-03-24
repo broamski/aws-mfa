@@ -178,6 +178,11 @@ def validate(args, config):
                                'You must provide --device or MFA_DEVICE or set '
                                '"aws_mfa_device" in ".aws/credentials"')
 
+    # verify device arn is an mfa device
+    if 'mfa' not in args.device:
+        log_error_and_exit(logger, "%s does not appear to be an MFA device."
+                           % args.device)
+
     # get assume_role from param or env var
     if not args.assume_role:
         if os.environ.get('MFA_ASSUME_ROLE'):
