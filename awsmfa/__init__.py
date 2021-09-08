@@ -312,8 +312,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             log_error_and_exit(logger,
                                "An error occured while calling "
                                "assume role: {}".format(e))
-        except ParamValidationError:
-            log_error_and_exit(logger, "Token must be six digits")
+        except ParamValidationError, e:
+            log_error_and_exit(logger, "Token must be six digits: %s" % e)
 
         config.set(
             short_term_name,
@@ -338,10 +338,10 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             log_error_and_exit(
                 logger,
                 "An error occured while calling assume role: {}".format(e))
-        except ParamValidationError:
+        except ParamValidationError, e:
             log_error_and_exit(
                 logger,
-                "Token must be six digits")
+                "Token must be six digits: %s" % e)
 
         config.set(
             short_term_name,
