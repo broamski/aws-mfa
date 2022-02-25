@@ -37,7 +37,8 @@ def main():
                              "Defaults to 43200 (12 hours), or 3600 (one "
                              "hour) when using '--assume-role'. This value "
                              "can also be provided via the environment "
-                             "variable 'MFA_STS_DURATION'. ")
+                             "variable 'MFA_STS_DURATION' or the"
+                             " ~/.aws/credentials variable 'aws_mfa_duration'.")
     parser.add_argument('--profile',
                         help="If using profiles, specify the name here. The "
                         "default profile name is 'default'. The value can "
@@ -189,6 +190,8 @@ def validate(args, config):
     if not args.duration:
         if os.environ.get('MFA_STS_DURATION'):
             args.duration = int(os.environ.get('MFA_STS_DURATION'))
+        elif config.has_option(long_term_name, 'aws_mfa_duration'):
+            args.duration = int(config.get(long_term_name, 'aws_mfa_duration'))
         else:
             args.duration = 3600 if args.assume_role else 43200
 
