@@ -66,7 +66,8 @@ def main():
     parser.add_argument('--force',
                         help="Refresh credentials even if currently valid.",
                         action="store_true",
-                        required=False)
+                        required=False,
+                        default=True)
     parser.add_argument('--log-level',
                         help="Set log level",
                         choices=[
@@ -82,6 +83,10 @@ def main():
     parser.add_argument('--token', '--mfa-token',
                         type=str,
                         help="Provide MFA token as an argument",
+                        required=False)
+    parser.add_argument('--region',
+                        type=str,
+                        help="Provide aws region",
                         required=False)
     args = parser.parse_args()
 
@@ -177,6 +182,14 @@ def validate(args, config):
             log_error_and_exit(logger,
                                'You must provide --device or MFA_DEVICE or set '
                                '"aws_mfa_device" in ".aws/credentials"')
+
+    if not args.region:
+        if config.has_option(long_term_name, 'region'):
+            args.region = config.get(long_term_name, 'region')
+        else:
+            log_error_and_exit(logger,
+                               'You must provide --region or set '
+                               '"region" in ".aws/credentials"')
 
     # get assume_role from param or env var
     if not args.assume_role:
@@ -284,12 +297,12 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         console_input = prompter()
         mfa_token = console_input('Enter AWS MFA code for device [%s] '
                                   '(renewing for %s seconds):' %
-                                  (args.device, args.duration))
-
+                                  (args.device, args.duration)) 
     client = boto3.client(
         'sts',
         aws_access_key_id=lt_key_id,
-        aws_secret_access_key=lt_access_key
+        aws_secret_access_key=lt_access_key,
+        region_name = args.region
     )
 
     if args.assume_role:
