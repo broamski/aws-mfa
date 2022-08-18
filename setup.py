@@ -17,7 +17,7 @@ setup(
     author='Brian Nuszkowski',
     author_email='brian@bnuz.co',
     packages=['awsmfa'],
-    scripts=['aws-mfa'],
+    scripts=['aws-mfa', 'aws-mfa.bat'],
     entry_points={
         'console_scripts': [
             'aws-mfa=awsmfa:main',
