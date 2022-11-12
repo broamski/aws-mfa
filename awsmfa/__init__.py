@@ -128,22 +128,31 @@ def validate(args, config):
             args.profile = 'default'
 
     if not args.long_term_suffix:
-        long_term_name = '%s-long-term' % (args.profile,)
-    elif args.long_term_suffix.lower() == 'none':
-        long_term_name = args.profile
+        if os.environ.get('MFA_LONG_TERM_SUFFIX'):
+            args.long_term_suffix = os.environ.get('MFA_LONG_TERM_SUFFIX')
+            long_term_name = '%s-%s' % (args.profile, args.long_term_suffix)
+        else:
+            long_term_name = '%s-long-term' % (args.profile,)
     else:
         long_term_name = '%s-%s' % (args.profile, args.long_term_suffix)
+    if args.long_term_suffix.lower() == 'none':
+        long_term_name = args.profile
+    logger.debug('Using long term name: %s' % (long_term_name,))
 
     if not args.short_term_suffix or args.short_term_suffix.lower() == 'none':
-        short_term_name = args.profile
+        if os.environ.get('MFA_SHORT_TERM_SUFFIX'):
+            args.short_term_suffix = os.environ.get('MFA_SHORT_TERM_SUFFIX')
+            short_term_name = '%s-%s' % (args.profile, args.short_term_suffix)
+        else:
+            short_term_name = args.profile
     else:
         short_term_name = '%s-%s' % (args.profile, args.short_term_suffix)
+    logger.debug('Using short term name: %s' % (short_term_name,))
 
     if long_term_name == short_term_name:
         log_error_and_exit(logger,
                            "The value for '--long-term-suffix' cannot "
                            "be equal to the value for '--short-term-suffix'")
-
     if args.assume_role:
         role_msg = "with assumed role: %s" % (args.assume_role,)
     elif config.has_option(args.profile, 'assumed_role_arn'):

@@ -155,11 +155,14 @@ Usage
                         identify the long term credential section by
                         [<profile_name>]. Omit to identify the long term 
                         credential section by [<profile_name>-long-term].
+                        The value can also be provided via the environment
+                        variable 'MFA_LONG_TERM_SUFFIX.
 --short-term-suffix SHORT_TERM_SUFFIX
                         To identify the short term credential section by
                         [<profile_name>-SHORT_TERM_SUFFIX]. Omit or use 'none'
                         to identify the short term credential section by
-                        [<profile_name>].
+                        [<profile_name>]. The value can also be provided via 
+                        the environment variable 'MFA_SHORT_TERM_SUFFIX.
 --assume-role arn:aws:iam::123456788990:role/RoleName
                         The ARN of the AWS IAM Role you would like to assume,
                         if specified. This value can also be provided via the
