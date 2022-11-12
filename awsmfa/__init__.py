@@ -128,14 +128,22 @@ def validate(args, config):
             args.profile = 'default'
 
     if not args.long_term_suffix:
-        long_term_name = '%s-long-term' % (args.profile,)
+        if os.environ.get('MFA_LONG_TERM_SUFFIX'):
+            args.long_term_suffix = os.environ.get('MFA_LONG_TERM_SUFFIX')
+            long_term_name = '%s-%s' % (args.profile, args.long_term_suffix)
+        else:
+            long_term_name = '%s-long-term' % (args.profile,)
     elif args.long_term_suffix.lower() == 'none':
         long_term_name = args.profile
     else:
         long_term_name = '%s-%s' % (args.profile, args.long_term_suffix)
 
     if not args.short_term_suffix or args.short_term_suffix.lower() == 'none':
-        short_term_name = args.profile
+        if os.environ.get('MFA_SHORT_TERM_SUFFIX'):
+            args.short_term_suffix = os.environ.get('MFA_SHORT_TERM_SUFFIX')
+            short_term_name = '%s-%s' % (args.profile, args.short_term_suffix)
+        else:
+            short_term_name = args.profile
     else:
         short_term_name = '%s-%s' % (args.profile, args.short_term_suffix)
 
