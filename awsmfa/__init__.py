@@ -22,7 +22,13 @@ AWS_CREDS_PATH = '%s/.aws/credentials' % (os.path.expanduser('~'),)
 
 
 def main():
+    global AWS_CREDS_PATH
     parser = argparse.ArgumentParser()
+    parser.add_argument('--credentials-filepath',
+                        required=False,
+                        metavar='\custom_path\.aws\credentials',
+                        help="Specify AWS Credentials filepath to be used "
+                        "instead of default Credentials file.") 
     parser.add_argument('--device',
                         required=False,
                         metavar='arn:aws:iam::123456788990:mfa/dudeman',
@@ -87,6 +93,10 @@ def main():
 
     level = getattr(logging, args.log_level)
     setup_logger(level)
+
+    # Use user provided Credentials file
+    if args.credentials_filepath:
+        AWS_CREDS_PATH = args.credentials_filepath;
 
     if not os.path.isfile(AWS_CREDS_PATH):
         console_input = prompter()

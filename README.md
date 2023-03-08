@@ -136,6 +136,9 @@ Usage
 -----
 
 ```
+--credentials-filepath '\custom_path\.aws\credentials'
+                        Specify AWS Credentials filepath to be used
+                        instead of default Credentials file.'.
 --device arn:aws:iam::123456788990:mfa/dudeman
                         The MFA Device ARN. This value can also be provided
                         via the environment variable 'MFA_DEVICE' or the
