@@ -286,7 +286,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
                                   '(renewing for %s seconds):' %
                                   (args.device, args.duration))
 
-    client = boto3.client(
+    session = boto3.session.Session(profile_name=short_term_name)
+    client = session.client(
         'sts',
         aws_access_key_id=lt_key_id,
         aws_secret_access_key=lt_access_key
