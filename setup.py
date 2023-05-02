@@ -24,5 +24,8 @@ setup(
         ],
     },
     url='https://github.com/broamski/aws-mfa',
-    install_requires=['boto3']
+    install_requires=[
+        'boto3',
+        'pyotp'
+    ]
 )
