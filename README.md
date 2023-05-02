@@ -167,6 +167,9 @@ Usage
 --role-session-name ROLE_SESSION_NAME
                         Friendly session name required when using --assume-
                         role. By default, this is your local username.
+--qrcode QRCODE         If using QRCODE secret as an argument, calculates
+                        totp internally.
+                     
 ```
 
 **Argument precedence**: Command line arguments take precedence over environment variables.
@@ -286,4 +289,11 @@ INFO - Success! Your credentials will expire in 3600 seconds at: 2017-07-10 07:1
 $> aws s3 list-objects —bucket my-production-bucket —profile myorganization-production
 
 $> aws s3 list-objects —bucket my-staging-bucket —profile myorganization-staging
+```
+Using qrcode secret as an argument, so calculates qrcode internally
+
+```sh
+$> aws-mfa --device arn:aws:iam::123456788990:mfa/dudeman --profile development --qrcode 1234456789012344567890123445678901234456789012344567890123445678
+INFO - Using profile: development
+INFO - Success! Your credentials will expire in 3600 seconds at: 2015-12-21 23:09:04+00:00
 ```
