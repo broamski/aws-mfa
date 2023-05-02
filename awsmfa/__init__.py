@@ -11,6 +11,9 @@ import logging
 import os
 import sys
 import boto3
+# python totp library
+import pyotp
+
 
 from botocore.exceptions import ClientError, ParamValidationError
 from awsmfa.config import initial_setup
@@ -82,6 +85,11 @@ def main():
     parser.add_argument('--token', '--mfa-token',
                         type=str,
                         help="Provide MFA token as an argument",
+                        required=False)
+    # qr code as optional argument
+    parser.add_argument('--qrcode',
+                        type=str,
+                        help="Provide QR Code secret as an argument",
                         required=False)
     args = parser.parse_args()
 
@@ -277,14 +285,22 @@ def validate(args, config):
 
 
 def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
-    if args.token:
-        logger.debug("Received token as argument")
-        mfa_token = '%s' % (args.token)
+
+    # qr code as argument
+    if args.qrcode:
+        logger.debug("Received qrcode as argument")
+         mfa_secretqr = '%s' % (args.qrcode)
+         mfa_token_code = pyotp.TOTP(mfa_secretqr)
+         mfa_token = str(mfa_token_code.now())
     else:
-        console_input = prompter()
-        mfa_token = console_input('Enter AWS MFA code for device [%s] '
-                                  '(renewing for %s seconds):' %
-                                  (args.device, args.duration))
+        if args.token:
+            logger.debug("Received token as argument")
+            mfa_token = '%s' % (args.token)
+        else:
+            console_input = prompter()
+            mfa_token = console_input('Enter AWS MFA code for device [%s] '
+                                      '(renewing for %s seconds):' %
+                                     (args.device, args.duration))
 
     client = boto3.client(
         'sts',
