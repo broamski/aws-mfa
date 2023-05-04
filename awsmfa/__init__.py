@@ -89,7 +89,10 @@ def main():
     # qr code as optional argument
     parser.add_argument('--qrcode',
                         type=str,
-                        help="Provide QR Code secret as an argument",
+                        help="QR Code secret - obtained when assigning MFA."
+                        "This value can also be provided via the"
+                        " environment variable 'MFA_QRCODE' or the"
+                        " ~/.aws/credentials variable 'aws_mfa_qrcode'.",
                         required=False)
     args = parser.parse_args()
 
@@ -186,6 +189,13 @@ def validate(args, config):
                                'You must provide --device or MFA_DEVICE or set '
                                '"aws_mfa_device" in ".aws/credentials"')
 
+    # get qrcode secret from param, env var or config
+    if not args.qrcode:
+        if os.environ.get('MFA_QRCODE'):
+            args.qrcode = os.environ.get('MFA_QRCODE')
+        elif config.has_option(long_term_name, 'aws_mfa_qrcode'):
+            args.qrcode = config.get(long_term_name, 'aws_mfa_qrcode')
+            
     # get assume_role from param or env var
     if not args.assume_role:
         if os.environ.get('MFA_ASSUME_ROLE'):
