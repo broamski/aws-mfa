@@ -11,6 +11,9 @@ import logging
 import os
 import sys
 import boto3
+# python totp library
+import pyotp
+
 
 from botocore.exceptions import ClientError, ParamValidationError
 from awsmfa.config import initial_setup
@@ -82,6 +85,14 @@ def main():
     parser.add_argument('--token', '--mfa-token',
                         type=str,
                         help="Provide MFA token as an argument",
+                        required=False)
+    # qr code as optional argument
+    parser.add_argument('--qrcode',
+                        type=str,
+                        help="QR Code secret - obtained when assigning MFA."
+                        "This value can also be provided via the"
+                        " environment variable 'MFA_QRCODE' or the"
+                        " ~/.aws/credentials variable 'aws_mfa_qrcode'.",
                         required=False)
     args = parser.parse_args()
 
@@ -178,6 +189,13 @@ def validate(args, config):
                                'You must provide --device or MFA_DEVICE or set '
                                '"aws_mfa_device" in ".aws/credentials"')
 
+    # get qrcode secret from param, env var or config
+    if not args.qrcode:
+        if os.environ.get('MFA_QRCODE'):
+            args.qrcode = os.environ.get('MFA_QRCODE')
+        elif config.has_option(long_term_name, 'aws_mfa_qrcode'):
+            args.qrcode = config.get(long_term_name, 'aws_mfa_qrcode')
+            
     # get assume_role from param or env var
     if not args.assume_role:
         if os.environ.get('MFA_ASSUME_ROLE'):
@@ -277,14 +295,22 @@ def validate(args, config):
 
 
 def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
-    if args.token:
-        logger.debug("Received token as argument")
-        mfa_token = '%s' % (args.token)
+
+    # qr code as argument
+    if args.qrcode:
+        logger.debug("Received qrcode as argument")
+        mfa_secretqr = '%s' % (args.qrcode)
+        mfa_token_code = pyotp.TOTP(mfa_secretqr)
+        mfa_token = str(mfa_token_code.now())
     else:
-        console_input = prompter()
-        mfa_token = console_input('Enter AWS MFA code for device [%s] '
-                                  '(renewing for %s seconds):' %
-                                  (args.device, args.duration))
+        if args.token:
+            logger.debug("Received token as argument")
+            mfa_token = '%s' % (args.token)
+        else:
+            console_input = prompter()
+            mfa_token = console_input('Enter AWS MFA code for device [%s] '
+                                      '(renewing for %s seconds):' %
+                                     (args.device, args.duration))
 
     client = boto3.client(
         'sts',

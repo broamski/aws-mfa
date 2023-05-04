@@ -167,6 +167,11 @@ Usage
 --role-session-name ROLE_SESSION_NAME
                         Friendly session name required when using --assume-
                         role. By default, this is your local username.
+--qrcode QRCODE         If using QRCODE secret as an argument, calculates
+                        totp internally. This value can also be provided
+                        via the environment variable 'MFA_QRCODE' or the
+                        ~/.aws/credentials variable 'aws_mfa_qrcode'.
+                     
 ```
 
 **Argument precedence**: Command line arguments take precedence over environment variables.
@@ -200,6 +205,17 @@ INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:0
 
 ```sh
 export MFA_DEVICE=arn:aws:iam::123456788990:mfa/dudeman
+export MFA_STS_DURATION=1800
+$> aws-mfa
+INFO - Using profile: default
+INFO - Your credentials have expired, renewing.
+Enter AWS MFA code for device [arn:aws:iam::123456788990:mfa/dudeman] (renewing for 1800 seconds):123456
+INFO - Success! Your credentials will expire in 1800 seconds at: 2015-12-21 23:07:09+00:00
+```
+
+```sh
+export MFA_DEVICE=arn:aws:iam::123456788990:mfa/dudeman
+export MFA_QRCODE=1234567890123456789012345678901234567890123456789012345678901234
 export MFA_STS_DURATION=1800
 $> aws-mfa
 INFO - Using profile: default
@@ -287,3 +303,22 @@ $> aws s3 list-objects —bucket my-production-bucket —profile myorganization-
 
 $> aws s3 list-objects —bucket my-staging-bucket —profile myorganization-staging
 ```
+Using qrcode secret as an argument, so calculates qrcode internally
+
+```sh
+$> aws-mfa --device arn:aws:iam::123456788990:mfa/dudeman --profile development --qrcode 1234456789012344567890123445678901234456789012344567890123445678
+INFO - Using profile: development
+INFO - Success! Your credentials will expire in 3600 seconds at: 2023-05-04 23:09:04+00:00
+```
+
+Using qrcode secret as saved parameter in credentials file
+
+```sh
+export MFA_DEVICE=arn:aws:iam::123456788990:mfa/dudeman
+export MFA_QRCODE=1234567890123456789012345678901234567890123456789012345678901234
+export MFA_STS_DURATION=1800
+$> aws-mfa --profile development
+INFO - Using profile: development
+INFO - Success! Your credentials will expire in 3600 seconds at: 2023-05-04 23:09:04+00:00
+```
+
