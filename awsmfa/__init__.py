@@ -299,9 +299,9 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     # qr code as argument
     if args.qrcode:
         logger.debug("Received qrcode as argument")
-         mfa_secretqr = '%s' % (args.qrcode)
-         mfa_token_code = pyotp.TOTP(mfa_secretqr)
-         mfa_token = str(mfa_token_code.now())
+        mfa_secretqr = '%s' % (args.qrcode)
+        mfa_token_code = pyotp.TOTP(mfa_secretqr)
+        mfa_token = str(mfa_token_code.now())
     else:
         if args.token:
             logger.debug("Received token as argument")
