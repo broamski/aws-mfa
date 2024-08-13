@@ -13,6 +13,7 @@ import sys
 import boto3
 
 from botocore.exceptions import ClientError, ParamValidationError
+from botocore.config import Config
 from awsmfa.config import initial_setup
 from awsmfa.util import log_error_and_exit, prompter
 
@@ -67,6 +68,9 @@ def main():
                         help="Refresh credentials even if currently valid.",
                         action="store_true",
                         required=False)
+    parser.add_argument('--region',
+                        help="Optional specify the region to connect to.",
+                        required=False)
     parser.add_argument('--log-level',
                         help="Set log level",
                         choices=[
@@ -78,10 +82,6 @@ def main():
     parser.add_argument('--setup',
                         help="Setup a new log term credentials section",
                         action="store_true",
-                        required=False)
-    parser.add_argument('--token', '--mfa-token',
-                        type=str,
-                        help="Provide MFA token as an argument",
                         required=False)
     args = parser.parse_args()
 
@@ -192,6 +192,11 @@ def validate(args, config):
         else:
             args.duration = 3600 if args.assume_role else 43200
 
+    # get region to use form args or credentials file
+    if not args.region:
+        if config.has_option(long_term_name, 'region'):
+            args.region = config.get(long_term_name, 'region')
+
     # If this is False, only refresh credentials if expired. Otherwise
     # always refresh.
     force_refresh = False
@@ -277,19 +282,18 @@ def validate(args, config):
 
 
 def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
-    if args.token:
-        logger.debug("Received token as argument")
-        mfa_token = '%s' % (args.token)
-    else:
-        console_input = prompter()
-        mfa_token = console_input('Enter AWS MFA code for device [%s] '
-                                  '(renewing for %s seconds):' %
-                                  (args.device, args.duration))
+    console_input = prompter()
+    mfa_token = console_input('Enter AWS MFA code for device [%s] '
+                              '(renewing for %s seconds):' %
+                              (args.device, args.duration))
+
+    aws_config=None if args.region is None else Config(region_name = args.region)
 
     client = boto3.client(
         'sts',
         aws_access_key_id=lt_key_id,
-        aws_secret_access_key=lt_access_key
+        aws_secret_access_key=lt_access_key,
+        config=aws_config
     )
 
     if args.assume_role:
@@ -337,7 +341,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
         except ClientError as e:
             log_error_and_exit(
                 logger,
-                "An error occured while calling assume role: {}".format(e))
+                "An error occured while calling get_session_token: {}".format(e))
         except ParamValidationError:
             log_error_and_exit(
                 logger,

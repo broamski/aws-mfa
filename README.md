@@ -132,6 +132,20 @@ aws_secret_access_key = <POPULATED_BY_AWS-MFA>
 aws_security_token = <POPULATED_BY_AWS-MFA>
 ```
 
+Regions and GovCloud
+--------------------
+
+Normally any commercial end-point can be used, but in many regions and in particular in GovCloud you
+need to use a specific region (or regions). By default you aws configure region is used. If you need
+to override this then you can use either the `--region us-gov-west-1` CLI option or you can add a region
+specification to your long-term credentials.
+
+```[govcloud-long-term]
+aws_access_key_id = YOUR_LONGTERM_KEY_ID
+aws_secret_access_key = YOUR_LONGTERM_ACCESS_KEY
+region = us-gov-west-1
+```
+
 Usage
 -----
 
@@ -153,7 +167,7 @@ Usage
                         To identify the long term credential section by
                         [<profile_name>-LONG_TERM_SUFFIX]. Use 'none' to
                         identify the long term credential section by
-                        [<profile_name>]. Omit to identify the long term 
+                        [<profile_name>]. Omit to identify the long term
                         credential section by [<profile_name>-long-term].
 --short-term-suffix SHORT_TERM_SUFFIX
                         To identify the short term credential section by
@@ -167,6 +181,11 @@ Usage
 --role-session-name ROLE_SESSION_NAME
                         Friendly session name required when using --assume-
                         role. By default, this is your local username.
+--force                 Refresh credentials even if currently valid.
+--region REGION         Optional specify the region to connect to.
+--log-level {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}
+                        Set log level
+--setup                 Setup a new log term credentials section
 ```
 
 **Argument precedence**: Command line arguments take precedence over environment variables.
@@ -277,7 +296,7 @@ INFO - Your credentials have expired, renewing.
 Enter AWS MFA code for device [arn:aws:iam::111111111111:mfa/me] (renewing for 3600 seconds):123456
 INFO - Success! Your credentials will expire in 3600 seconds at: 2017-07-10 07:16:43+00:00
 
-$> aws-mfa —profile myorganization --assume-role arn:aws:iam::333333333333:role/Administrator --short-term-suffix staging --long-term-suffix none --role-session-name staging 
+$> aws-mfa —profile myorganization --assume-role arn:aws:iam::333333333333:role/Administrator --short-term-suffix staging --long-term-suffix none --role-session-name staging
 INFO - Validating credentials for profile: myorganization-staging with assumed role arn:aws:iam::333333333333:role/Administrator
 INFO - Your credentials have expired, renewing.
 Enter AWS MFA code for device [arn:aws:iam::111111111111:mfa/me] (renewing for 3600 seconds):123456

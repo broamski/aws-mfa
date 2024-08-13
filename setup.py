@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='aws-mfa',
-    version='0.0.12',
+    version='0.0.13',
     description='Manage AWS MFA Security Credentials',
     long_description=long_description,
     long_description_content_type='text/markdown',
