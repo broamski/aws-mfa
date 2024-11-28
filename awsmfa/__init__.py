@@ -14,14 +14,16 @@ import boto3
 
 from botocore.exceptions import ClientError, ParamValidationError
 from awsmfa.config import initial_setup
-from awsmfa.util import log_error_and_exit, prompter
+from awsmfa.util import log_error_and_exit, prompter, show_logo
 
 logger = logging.getLogger('aws-mfa')
 
+SECONDS_IN_AN_HOUR = 3600
 AWS_CREDS_PATH = '%s/.aws/credentials' % (os.path.expanduser('~'),)
 
 
 def main():
+    show_logo()
     parser = argparse.ArgumentParser()
     parser.add_argument('--device',
                         required=False,
@@ -108,6 +110,9 @@ def main():
 
     validate(args, config)
 
+def duration_in_hours(duration: int) -> int:
+    # There's a magic number here; Let's use datetime.timedelta
+    return int(duration / 3600)
 
 def get_config(aws_creds_path):
     config = configparser.RawConfigParser()
@@ -189,6 +194,7 @@ def validate(args, config):
     if not args.duration:
         if os.environ.get('MFA_STS_DURATION'):
             args.duration = int(os.environ.get('MFA_STS_DURATION'))
+            # Let's add human-readable duration to the log message
         else:
             args.duration = 3600 if args.assume_role else 43200
 
@@ -262,15 +268,15 @@ def validate(args, config):
     if not force_refresh:
         exp = datetime.datetime.strptime(
             config.get(short_term_name, 'expiration'), '%Y-%m-%d %H:%M:%S')
-        diff = exp - datetime.datetime.utcnow()
+        diff = exp - datetime.datetime.now()
         if diff.total_seconds() <= 0:
             logger.info("Your credentials have expired, renewing.")
         else:
             should_refresh = False
             logger.info(
-                "Your credentials are still valid for %s seconds"
+                "Your credentials are still valid for %s seconds (%s hours),"
                 " they will expire at %s"
-                % (diff.total_seconds(), exp))
+                % (diff.total_seconds(), duration_in_hours(int(diff.total_seconds())), exp))
 
     if should_refresh:
         get_credentials(short_term_name, key_id, access_key, args, config)
@@ -283,8 +289,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     else:
         console_input = prompter()
         mfa_token = console_input('Enter AWS MFA code for device [%s] '
-                                  '(renewing for %s seconds):' %
-                                  (args.device, args.duration))
+                                  '(renewing for %s seconds (% hours):' %
+                                  (args.device, duration_in_hours(args.duration), args.duration))
 
     client = boto3.client(
         'sts',
@@ -294,8 +300,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
 
     if args.assume_role:
 
-        logger.info("Assuming Role - Profile: %s, Role: %s, Duration: %s",
-                    short_term_name, args.assume_role, args.duration)
+        logger.info("Assuming Role - Profile: %s, Role: %s, Duration: %s (%s hours)",
+                    short_term_name, args.assume_role, args.duration, duration_in_hours(args.duration))
         if args.role_session_name is None:
             log_error_and_exit(logger, "You must specify a role session name "
                                "via --role-session-name")
@@ -310,7 +316,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             )
         except ClientError as e:
             log_error_and_exit(logger,
-                               "An error occured while calling "
+                               "An error occurred while calling "
                                "assume role: {}".format(e))
         except ParamValidationError:
             log_error_and_exit(logger, "Token must be six digits")
@@ -326,8 +332,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             args.assume_role,
         )
     else:
-        logger.info("Fetching Credentials - Profile: %s, Duration: %s",
-                    short_term_name, args.duration)
+        logger.info("Fetching Credentials - Profile: %s, Duration: %s (%s hours)",
+                    short_term_name, args.duration, duration_in_hours(args.duration))
         try:
             response = client.get_session_token(
                 DurationSeconds=args.duration,
@@ -365,7 +371,7 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             option,
             response['Credentials'][value]
         )
-    # Save expiration individiually, so it can be manipulated
+    # Save expiration individually, so it can be manipulated
     config.set(
         short_term_name,
         'expiration',
@@ -374,8 +380,8 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
     with open(AWS_CREDS_PATH, 'w') as configfile:
         config.write(configfile)
     logger.info(
-        "Success! Your credentials will expire in %s seconds at: %s"
-        % (args.duration, response['Credentials']['Expiration']))
+        "Success! Your credentials will expire in %s seconds (%s hours) at: %s"
+        % (args.duration, duration_in_hours(args.duration) ,response['Credentials']['Expiration']))
     sys.exit(0)
 
 
