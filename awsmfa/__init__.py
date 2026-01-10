@@ -309,12 +309,11 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
                 TokenCode=mfa_token
             )
         except ClientError as e:
-            log_error_and_exit(logger,
-                               "An error occured while calling "
-                               "assume role: {}".format(e))
-        except ParamValidationError:
-            log_error_and_exit(logger, "Token must be six digits")
-
+            log_error_and_exit(
+                logger, "An error occured while calling " "assume role: {}".format(e)
+            )
+        except ParamValidationError as e:
+            log_error_and_exit(logger, getattr(e, "message", repr(e)))
         config.set(
             short_term_name,
             'assumed_role',
@@ -336,12 +335,10 @@ def get_credentials(short_term_name, lt_key_id, lt_access_key, args, config):
             )
         except ClientError as e:
             log_error_and_exit(
-                logger,
-                "An error occured while calling assume role: {}".format(e))
-        except ParamValidationError:
-            log_error_and_exit(
-                logger,
-                "Token must be six digits")
+                logger, "An error occured while calling assume role: {}".format(e)
+            )
+        except ParamValidationError as e:
+            log_error_and_exit(logger, getattr(e, "message", repr(e)))
 
         config.set(
             short_term_name,
